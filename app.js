@@ -81,7 +81,25 @@ async function loadLetters() {
       <strong>${letter.sender}</strong>
       <p>${letter.content}</p>
       <div class="time">${new Date(letter.created_at).toLocaleString()}</div>
+      <button onclick="deleteLetter(${letter.id})" style="margin-top:8px; background:#c75757; padding:6px 10px; font-size:12px;">删除</button>
     `;
     list.appendChild(div);
   });
+}
+
+// 新增：删除信件
+async function deleteLetter(id) {
+  if (!confirm("确定要删除这封信吗？删除后不可恢复")) return;
+
+  const { error } = await client
+    .from("letters")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert("删除失败：" + error.message);
+  } else {
+    alert("删除成功");
+    loadLetters();
+  }
 }
