@@ -97,7 +97,7 @@ async function loadLetters() {
     div.innerHTML = `
       <div class="bubble">
         <div class="name">${letter.sender}</div>
-        <div class="msg">${letter.content}</div>
+        <div class="msg" onclick="showDetail(${letter.id})">${letter.content}</div>
         <div class="info">
           <span>${new Date(letter.created_at).toLocaleString()}</span>
           <button onclick="del(${letter.id})">删</button>
@@ -115,4 +115,14 @@ async function del(id) {
   if (!confirm("确定删除？删除后不可恢复")) return;
   await client.from("letters").delete().eq("id", id);
   loadLetters();
+}
+// 查看完整内容
+async function showDetail(id) {
+  const { data } = await client
+    .from("letters")
+    .select("content")
+    .eq("id", id)
+    .single();
+
+  if (data) alert(data.content);
 }
