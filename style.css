@@ -81,7 +81,12 @@ button {
 .msg {
   line-height: 1.6;
   font-size: 16px;
-  white-space: pre-wrap; /* 这行是关键！强制换行生效 */
+  white-space: pre-wrap;
+  display: -webkit-box;
+  -webkit-line-clamp: 1; /* 只显示 1 行 */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .info {
