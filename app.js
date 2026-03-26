@@ -1,16 +1,25 @@
 // ==============================================
-// 你的配置（已经帮你填好）
+// 你的配置
 // ==============================================
 const SUPABASE_URL = "https://jihygwuxpgvukruiqvqg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_IRdpgnmzz2W6AeEj9R-1ug_ZvAlJQLE";
 
-// 修复：这里不能叫 supabase，会冲突！
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 页面加载时检查是否已登录
+let currentMood = "";
+
+// ======================
+// 心情贴纸
+// ======================
+function setMood(mood) {
+  currentMood = mood;
+}
+
 window.onload = checkAuth;
 
-// 检查登录状态
+// ======================
+// 登录/注册
+// ======================
 async function checkAuth() {
   const { data: { user } } = await client.auth.getUser();
   if (user) {
@@ -20,7 +29,6 @@ async function checkAuth() {
   }
 }
 
-// 注册
 async function register() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -29,7 +37,6 @@ async function register() {
   else alert("注册成功！请登录");
 }
 
-// 登录
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
@@ -38,68 +45,68 @@ async function login() {
   else location.reload();
 }
 
-// 发送信件
+// ======================
+// 发送信件（带心情）
+// ======================
 async function sendLetter() {
   const content = document.getElementById("content").value;
   if (!content) return alert("请输入内容");
 
   const { data: { user } } = await client.auth.getUser();
-  const { error } = await client
-    .from("letters")
-    .insert([{
-      sender: user.email,
-      content: content
-    }]);
+  await client.from("letters").insert([{
+    sender: user.email,
+    content: (currentMood ? currentMood + " " : "") + content
+  }]);
 
-  if (error) alert(error.message);
-  else {
-    alert("发送成功！");
-    document.getElementById("content").value = "";
-    loadLetters();
-  }
+  currentMood = "";
+  document.getElementById("content").value = "";
+  loadLetters();
 }
 
-// 加载历史信件
+// ======================
+// 搜索 + 加载信件
+// ======================
 async function loadLetters() {
+  const keyword = document.getElementById("search")?.value.toLowerCase() || "";
+
   const { data, error } = await client
     .from("letters")
     .select("*")
     .order("created_at", { ascending: false });
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) return;
 
+  const { data: { user } } = await client.auth.getUser();
   const list = document.getElementById("letters-list");
   list.innerHTML = "";
 
   data.forEach(letter => {
+    const text = letter.content.toLowerCase();
+    if (keyword && !text.includes(keyword)) return;
+
     const div = document.createElement("div");
-    div.className = "letter";
+    const isMe = letter.sender === user.email;
+    div.className = `letter ${isMe ? "me" : "you"}`;
+
     div.innerHTML = `
-      <strong>${letter.sender}</strong>
-      <p>${letter.content}</p>
-      <div class="time">${new Date(letter.created_at).toLocaleString()}</div>
-      <button onclick="deleteLetter(${letter.id})" style="margin-top:8px; background:#c75757; padding:6px 10px; font-size:12px;">删除</button>
+      <div class="bubble">
+        <div class="name">${letter.sender}</div>
+        <div class="msg">${letter.content}</div>
+        <div class="info">
+          <span>${new Date(letter.created_at).toLocaleString()}</span>
+          <button onclick="del(${letter.id})">删</button>
+        </div>
+      </div>
     `;
     list.appendChild(div);
   });
 }
 
-// 新增：删除信件
-async function deleteLetter(id) {
-  if (!confirm("确定要删除这封信吗？删除后不可恢复")) return;
-
-  const { error } = await client
-    .from("letters")
-    .delete()
-    .eq("id", id);
-
-  if (error) {
-    alert("删除失败：" + error.message);
-  } else {
-    alert("删除成功");
-    loadLetters();
-  }
+// ======================
+// 删除信件
+// ======================
+async function del(id) {
+  if (!confirm("确定删除？删除后不可恢复")) return;
+  await client.from("letters").delete().eq("id", id);
+  loadLetters();
 }
