@@ -12,7 +12,8 @@ let currentMood = "";
 // 心情贴纸
 // ======================
 function setMood(mood) {
-  currentMood = mood;
+  window.selectedMood = mood;
+  document.getElementById("moodShow").innerText = "今日心情：" + mood;
 }
 
 window.onload = checkAuth;
@@ -52,17 +53,22 @@ async function sendLetter() {
   const content = document.getElementById("content").value;
   if (!content) return alert("请输入内容");
 
+  const mood = window.selectedMood || "";
+  const finalContent = mood 
+    ? `【今日心情】${mood}\n${content}` 
+    : content;
+
   const { data: { user } } = await client.auth.getUser();
   await client.from("letters").insert([{
     sender: user.email,
-    content: (currentMood ? currentMood + " " : "") + content
+    content: finalContent
   }]);
 
-  currentMood = "";
+  window.selectedMood = "";
+  document.getElementById("moodShow").innerText = "";
   document.getElementById("content").value = "";
   loadLetters();
 }
-
 // ======================
 // 搜索 + 加载信件
 // ======================
