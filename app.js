@@ -55,7 +55,7 @@ async function sendLetter() {
 
   const mood = window.selectedMood || "";
   const finalContent = mood 
-    ? `【今日心情】${mood}\n${content}` 
+    ? `【今日心情：${mood}】\n${content}` 
     : content;
 
   const { data: { user } } = await client.auth.getUser();
