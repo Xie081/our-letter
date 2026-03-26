@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>我们的信件</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>我们的信</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- 登录区域 -->
 <div id="auth-section">
   <h2>登录 / 注册</h2>
   <input type="email" id="email" placeholder="邮箱">
@@ -17,20 +16,25 @@
   <button onclick="register()">注册</button>
 </div>
 
-<!-- 写信区域（登录后显示） -->
 <div id="letter-section" style="display:none;">
-  <h2>给你写信</h2>
-  <textarea id="content" placeholder="写下你想说的话..."></textarea>
-  <button onclick="sendLetter()">发送信件</button>
+  <input id="search" oninput="loadLetters()" placeholder="搜索信件内容...">
 
-  <div class="history">
-    <h3>历史信件</h3>
-    <div id="letters-list"></div>
+  <h2>写一封信</h2>
+  <div class="mood">
+    <button onclick="setMood('😊')">😊</button>
+    <button onclick="setMood('😢')">😢</button>
+    <button onclick="setMood('😠')">😠</button>
+    <button onclick="setMood('🥰')">🥰</button>
+    <button onclick="setMood('✨')">✨</button>
   </div>
+  <textarea id="content" placeholder="想说的话..."></textarea>
+  <button onclick="sendLetter()">发送</button>
+
+  <div id="letters-list"></div>
 </div>
 
-<!-- 引入 Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>
 </body>
+</html>
 </html>
