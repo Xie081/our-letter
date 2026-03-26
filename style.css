@@ -81,6 +81,7 @@ button {
 .msg {
   line-height: 1.6;
   font-size: 16px;
+  white-space: pre-wrap; /* 这行是关键！强制换行生效 */
 }
 
 .info {
