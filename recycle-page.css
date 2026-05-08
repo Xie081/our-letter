@@ -1,4 +1,4 @@
-/* ========== 回收站 独立专用CSS 无搜索框 带恢复/删除按钮 ========== */
+/* ========== 回收站专用 ========== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -7,8 +7,6 @@
 }
 
 html, body {
-  width: 100%;
-  min-height: 100vh;
   background: #f0eadd;
   padding: 16px;
   color: #33261c;
@@ -17,35 +15,29 @@ html, body {
 h2 {
   font-size: 28px;
   margin-bottom: 20px;
-  color: #33261c;
   font-weight: normal;
 }
 
-/* 全局按钮样式 */
 button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   border: none;
   border-radius: 12px;
   background: #33261c;
   color: #fff;
   font-size: 16px;
-  font-family: "SimSun", serif;
   margin: 6px 0;
   cursor: pointer;
 }
 
-/* 一行两列卡片布局 */
-#letters-list {
+#recycle-list {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-top: 10px;
 }
 
-/* 回收站信件卡片 */
 .letter-card {
-  background: #f5ead8;
   border-radius: 16px;
   padding: 18px;
   min-height: 180px;
@@ -53,13 +45,13 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background-size: cover;
+  background-position: center;
 }
 
-/* 预览文字两行省略 */
 .letter-preview {
   font-size: 15px;
   line-height: 1.6;
-  color: #33261c;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -69,34 +61,31 @@ button {
 
 .letter-time {
   font-size: 12px;
-  color: #887;
+  opacity: 0.7;
   margin-top: 10px;
 }
 
-/* 卡片底部按钮组：恢复 + 彻底删除 */
 .card-btn-group {
   display: flex;
   gap: 8px;
   margin-top: 12px;
 }
+
 .card-btn-group button {
   flex: 1;
   padding: 8px;
   font-size: 14px;
   border-radius: 8px;
-  margin: 0;
 }
 
-/* 恢复按钮 */
 .btn-restore {
   background: #6b8c78;
 }
-/* 彻底删除按钮 */
+
 .btn-delete-full {
   background: #b86b6b;
 }
 
-/* 弹窗遮罩 */
 .letter-modal {
   position: fixed;
   inset: 0;
@@ -107,55 +96,36 @@ button {
   z-index: 999;
   padding: 20px;
 }
+
 .modal-content {
-  width: 100%;
   max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
   padding: 30px;
   border-radius: 20px;
   font-size: 16px;
   line-height: 1.8;
   white-space: pre-wrap;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-  color: #222 !important;
-}
-.close-btn {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: #fff;
-  font-size: 20px;
-  cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  background-size: cover;
+  background-position: center;
 }
 
-/* 信纸背景 和另外两页统一 */
-.paper-white { background:#ffffff; }
-.paper-blue {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png");
-  background-size: cover;
-  background-position: center;
+.close-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
 }
-.paper-green {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-red {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-whiteimg {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-yellow {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png");
-  background-size: cover;
-  background-position: center;
-}
+
+.paper-white { background:#fff; }
+.paper-blue { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png"); }
+.paper-green { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png"); }
+.paper-red { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png"); }
+.paper-whiteimg { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png"); }
+.paper-yellow { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png"); }
