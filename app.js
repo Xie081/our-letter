@@ -155,7 +155,7 @@ async function sendLetter() {
 }
 
 // ======================
-// 信件列表 —— 一行两列卡片 + 点击弹窗看完整信纸
+// 信件列表 —— 一行两列卡片 + 点击弹窗看完整信纸 + 删除按钮
 // ======================
 async function loadLettersFilter(type) {
   filterType = type;
@@ -185,26 +185,73 @@ async function loadLetters() {
 
     const card = document.createElement("div");
     card.className = `letter-card ${paper}`;
-    card.onclick = () => openFullLetter(letter);
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
       <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
+      <button class="del-btn" onclick="del(${letter.id})">删除</button>
     `;
+
+    card.querySelector(".letter-preview").onclick = () => openFullLetter(letter);
     list.appendChild(card);
   });
 }
 
-// 打开完整信件（弹窗 + 信纸背景）
+// 打开完整信件（弹窗 + 信纸背景 + 可滚动 + 保存长图/PDF）
 function openFullLetter(letter) {
   const modal = document.createElement("div");
   modal.className = "letter-modal";
   modal.innerHTML = `
-    <div class="close-btn" onclick="this.parentElement.remove()">×</div>
-    <div class="modal-content ${letter.paper_style || 'paper-white'}">
+    <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+    <div class="modal-content ${letter.paper_style || 'paper-white'}" id="saveTarget">
       ${letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">')}
+    </div>
+    <div class="save-btn-group">
+      <button class="save-img-btn" onclick="saveAsImage()">保存长图</button>
+      <button class="save-pdf-btn" onclick="saveAsPdf()">保存PDF</button>
     </div>
   `;
   document.body.appendChild(modal);
+}
+
+// 保存为长图片（带背景）
+async function saveAsImage() {
+  if (!window.html2canvas) {
+    alert("请刷新页面或检查网络");
+    return;
+  }
+  const target = document.getElementById("saveTarget");
+  const canvas = await html2canvas(target, {
+    useCORS: true,
+    scale: 2,
+    backgroundColor: null
+  });
+  const link = document.createElement("a");
+  link.download = "信件_" + new Date().getTime() + ".png";
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+}
+
+// 保存为PDF（带背景）
+async function saveAsPdf() {
+  if (!window.jspdf) {
+    alert("请刷新页面或检查网络");
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const target = document.getElementById("saveTarget");
+  const canvas = await html2canvas(target, {
+    useCORS: true,
+    scale: 2,
+    backgroundColor: null
+  });
+  const imgData = canvas.toDataURL("image/jpeg", 1.0);
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "px",
+    format: [canvas.width, canvas.height]
+  });
+  pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
+  pdf.save("信件_" + new Date().getTime() + ".pdf");
 }
 
 // ======================
@@ -236,13 +283,15 @@ async function loadRecycle() {
     const card = document.createElement("div");
     card.className = `letter-card ${paper}`;
     card.innerHTML = `
-      <div class="letter-preview" onclick="openFullLetter(${JSON.stringify(letter).replace(/"/g, '&quot;')})">${preview}</div>
+      <div class="letter-preview">${preview}</div>
       <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
       <div class="card-btn-group">
         <button class="btn-restore" onclick="recoverLetter(${letter.id})">恢复</button>
         <button class="btn-delete-full" onclick="hardDelete(${letter.id})">彻底删除</button>
       </div>
     `;
+
+    card.querySelector(".letter-preview").onclick = () => openFullLetter(letter);
     list.appendChild(card);
   });
 }
