@@ -73,11 +73,51 @@ button {
   font-size: 15px;
 }
 
-/* 信纸不同背景类 */
+/* 纯色信纸（保留） */
 .paper-white { background:#fff; }
-.paper-pink { background:#fff5f8; }
-.paper-nature { background:#f5f8f5; }
-.paper-old { background:#f8f3e6; }
+
+/* ====================== */
+/* 你的 5 张图片信纸背景 */
+/* ====================== */
+.paper-blue {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png");
+  background-size: cover;
+  background-position: center;
+  color: #222 !important;
+}
+.paper-green {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png");
+  background-size: cover;
+  background-position: center;
+  color: #222 !important;
+}
+.paper-red {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png");
+  background-size: cover;
+  background-position: center;
+  color: #222 !important;
+}
+.paper-whiteimg {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png");
+  background-size: cover;
+  background-position: center;
+  color: #222 !important;
+}
+.paper-yellow {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png");
+  background-size: cover;
+  background-position: center;
+  color: #222 !important;
+}
+
+/* 气泡里也能正常显示图片信纸 */
+.bubble.paper-blue,
+.bubble.paper-green,
+.bubble.paper-red,
+.bubble.paper-whiteimg,
+.bubble.paper-yellow {
+  color: #222 !important;
+}
 
 /* 上传图片区域 */
 .upload-area {
