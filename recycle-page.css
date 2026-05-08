@@ -1,0 +1,161 @@
+/* ========== 回收站 独立专用CSS 无搜索框 带恢复/删除按钮 ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "SimSun", serif;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background: #f0eadd;
+  padding: 16px;
+  color: #33261c;
+}
+
+h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  color: #33261c;
+  font-weight: normal;
+}
+
+/* 全局按钮样式 */
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 12px;
+  background: #33261c;
+  color: #fff;
+  font-size: 16px;
+  font-family: "SimSun", serif;
+  margin: 6px 0;
+  cursor: pointer;
+}
+
+/* 一行两列卡片布局 */
+#letters-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+/* 回收站信件卡片 */
+.letter-card {
+  background: #f5ead8;
+  border-radius: 16px;
+  padding: 18px;
+  min-height: 180px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+/* 预览文字两行省略 */
+.letter-preview {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #33261c;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  cursor: pointer;
+}
+
+.letter-time {
+  font-size: 12px;
+  color: #887;
+  margin-top: 10px;
+}
+
+/* 卡片底部按钮组：恢复 + 彻底删除 */
+.card-btn-group {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+.card-btn-group button {
+  flex: 1;
+  padding: 8px;
+  font-size: 14px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+/* 恢复按钮 */
+.btn-restore {
+  background: #6b8c78;
+}
+/* 彻底删除按钮 */
+.btn-delete-full {
+  background: #b86b6b;
+}
+
+/* 弹窗遮罩 */
+.letter-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 20px;
+  font-size: 16px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  color: #222 !important;
+}
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* 信纸背景 和另外两页统一 */
+.paper-white { background:#ffffff; }
+.paper-blue {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-green {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-red {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-whiteimg {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-yellow {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png");
+  background-size: cover;
+  background-position: center;
+}
