@@ -28,7 +28,7 @@ if (contentTxt) {
 }
 
 // ======================
-// 自定义心情输入（自由打字）
+// 心情输入（保留）
 // ======================
 function updateMood() {
   const val = document.getElementById("moodInput").value.trim();
@@ -42,18 +42,14 @@ if (moodInput) {
 }
 
 // ======================
-// 图片上传
+// 图片上传 —— 只显示文件名，不显示大图
 // ======================
 const imageInput = document.getElementById("imageInput");
 if (imageInput) {
   imageInput.addEventListener("change", async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      document.getElementById("imagePreview").innerHTML = `<img src="${ev.target.result}" style="max-width:180px;border-radius:12px;">`;
-    };
-    reader.readAsDataURL(file);
+    document.getElementById("imagePreview").innerText = "已选择：" + file.name;
     selectedImage = file;
   });
 }
@@ -70,6 +66,15 @@ async function uploadImage(file) {
   }
   const { data: { publicUrl } } = client.storage.from("letter-images").getPublicUrl(fileName);
   return publicUrl;
+}
+
+// ======================
+// 信纸预览切换
+// ======================
+function previewPaper(cls) {
+  if (!contentTxt) return;
+  contentTxt.className = "";
+  contentTxt.classList.add(cls);
 }
 
 // ======================
@@ -121,7 +126,7 @@ async function sendLetter() {
     if (!imageUrl) return;
     finalContent = content ? `${content}\n![img](${imageUrl})` : `![img](${imageUrl})`;
     selectedImage = null;
-    document.getElementById("imagePreview").innerHTML = "";
+    document.getElementById("imagePreview").innerText = "";
     document.getElementById("imageInput").value = "";
   }
 
@@ -150,7 +155,7 @@ async function sendLetter() {
 }
 
 // ======================
-// 信件列表：我收到的 / 我写的
+// 信件列表 —— 一行两列卡片 + 点击弹窗看完整信纸
 // ======================
 async function loadLettersFilter(type) {
   filterType = type;
@@ -158,9 +163,7 @@ async function loadLettersFilter(type) {
 }
 
 async function loadLetters() {
-  const keyword = document.getElementById("search")?.value.toLowerCase() || "";
   const { data: { user } } = await client.auth.getUser();
-
   let query = client.from("letters")
     .select("*")
     .eq("is_deleted", false)
@@ -168,104 +171,90 @@ async function loadLetters() {
 
   if (filterType === "me") {
     query = query.eq("sender", user.email);
-  } else if (filterType === "other") {
+  } else {
     query = query.neq("sender", user.email);
   }
 
-  const { data, error } = await query;
-  if (error) return;
-
+  const { data } = await query;
   const list = document.getElementById("letters-list");
   list.innerHTML = "";
 
   data.forEach(letter => {
-    const text = letter.content.toLowerCase();
-    if (keyword && !text.includes(keyword)) return;
+    let preview = letter.content.replace(/!\[img].*?]/g, "[图片]").slice(0, 30) + "...";
+    const paper = letter.paper_style || "paper-white";
 
-    const div = document.createElement("div");
-    const isMe = letter.sender === user.email;
-    div.className = `letter ${isMe ? "me" : "you"}`;
-
-    let showContent = letter.content.replace(/!\[img\]\((.*?)\)/g, '<img src="$1">');
-
-    div.innerHTML = `
-      <div class="bubble ${letter.paper_style || "paper-white"}">
-        <div class="name">${letter.sender}</div>
-        <div class="msg" onclick="showDetail(${letter.id})">${showContent}</div>
-        <div class="info">
-          <span>${new Date(letter.created_at).toLocaleString()}</span>
-          <button onclick="del(${letter.id})">删除</button>
-        </div>
-      </div>
+    const card = document.createElement("div");
+    card.className = `letter-card ${paper}`;
+    card.onclick = () => openFullLetter(letter);
+    card.innerHTML = `
+      <div class="letter-preview">${preview}</div>
+      <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
     `;
-    list.appendChild(div);
+    list.appendChild(card);
   });
 }
 
+// 打开完整信件（弹窗 + 信纸背景）
+function openFullLetter(letter) {
+  const modal = document.createElement("div");
+  modal.className = "letter-modal";
+  modal.innerHTML = `
+    <div class="close-btn" onclick="this.parentElement.remove()">×</div>
+    <div class="modal-content ${letter.paper_style || 'paper-white'}">
+      ${letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">')}
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
 // ======================
-// 假删除
+// 删除到回收站
 // ======================
 async function del(id) {
-  if (!confirm("确定删除信件？可在回收站找回")) return;
+  if (!confirm("确定删除？可在回收站找回")) return;
   await client.from("letters").update({ is_deleted: true }).eq("id", id);
   loadLetters();
 }
 
 // ======================
-// 回收站
+// 回收站 —— 一行两列 + 恢复 + 彻底删除
 // ======================
 async function loadRecycle() {
-  const { data, error } = await client.from("letters")
+  const { data: { user } } = await client.auth.getUser();
+  const { data } = await client.from("letters")
     .select("*")
     .eq("is_deleted", true)
     .order("created_at", { ascending: false });
 
-  if (error) return;
-  const { data: { user } } = await client.auth.getUser();
   const list = document.getElementById("recycle-list");
   list.innerHTML = "";
 
   data.forEach(letter => {
-    const div = document.createElement("div");
-    const isMe = letter.sender === user.email;
-    div.className = `letter ${isMe ? "me" : "you"}`;
+    let preview = letter.content.replace(/!\[img].*?]/g, "[图片]").slice(0, 30) + "...";
+    const paper = letter.paper_style || "paper-white";
 
-    let showContent = letter.content.replace(/!\[img\]\((.*?)\)/g, '<img src="$1">');
-
-    div.innerHTML = `
-      <div class="bubble ${letter.paper_style || "paper-white"}">
-        <div class="name">${letter.sender}</div>
-        <div class="msg" onclick="showDetail(${letter.id})">${showContent}</div>
-        <div class="info">
-          <span>${new Date(letter.created_at).toLocaleString()}</span>
-          <button onclick="recoverLetter(${letter.id})" style="background:#28a745;color:white;padding:4px 8px;border-radius:6px;margin-right:6px;">恢复</button>
-          <button onclick="hardDelete(${letter.id})" style="background:#dc3545;color:white;padding:4px 8px;border-radius:6px;">彻底删除</button>
-        </div>
+    const card = document.createElement("div");
+    card.className = `letter-card ${paper}`;
+    card.innerHTML = `
+      <div class="letter-preview" onclick="openFullLetter(${JSON.stringify(letter).replace(/"/g, '&quot;')})">${preview}</div>
+      <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
+      <div class="card-btn-group">
+        <button class="btn-restore" onclick="recoverLetter(${letter.id})">恢复</button>
+        <button class="btn-delete-full" onclick="hardDelete(${letter.id})">彻底删除</button>
       </div>
     `;
-    list.appendChild(div);
+    list.appendChild(card);
   });
 }
 
 async function recoverLetter(id) {
   await client.from("letters").update({ is_deleted: false }).eq("id", id);
-  alert("已恢复到信件列表");
-  loadRecycle();
-}
-// 回收站彻底删除（永久删除不可恢复）
-async function hardDelete(id) {
-  if (!confirm("确定彻底删除？删除后无法找回！")) return;
-  await client.from("letters").delete().eq("id", id);
+  alert("已恢复！");
   loadRecycle();
 }
 
-// ======================
-// 查看详情
-// ======================
-async function showDetail(id) {
-  const { data } = await client.from("letters")
-    .select("content")
-    .eq("id", id)
-    .single();
-  if (data) alert(data.content);
+async function hardDelete(id) {
+  if (!confirm("确定永久删除？不可恢复！")) return;
+  await client.from("letters").delete().eq("id", id);
+  loadRecycle();
 }
