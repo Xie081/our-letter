@@ -1,4 +1,4 @@
-/* index 写信页专用 */
+/* ========== index.html 写信页专用 ========== */
 * {
   box-sizing: border-box;
   margin: 0;
@@ -11,17 +11,16 @@ html, body {
   min-height: 100vh;
   background: #f0eadd;
   padding: 16px;
+  color: #33261c;
 }
 
 h2 {
   font-size: 28px;
   margin-bottom: 20px;
-  color: #33261c;
   font-weight: normal;
 }
 
-/* 输入框、下拉统一样式 */
-input, .paper-style select {
+input, select {
   width: 100%;
   padding: 12px 16px;
   margin: 8px 0;
@@ -30,81 +29,58 @@ input, .paper-style select {
   background: #fff;
   font-size: 16px;
   outline: none;
+  font-family: "SimSun", serif;
 }
 
-/* 核心：文本域直接用信纸背景、透明底色、宋体文字 */
+#moodShow {
+  font-size: 14px;
+  color: #666;
+  margin: 8px 0;
+  font-family: "KaiTi", serif;
+}
+
 textarea {
   width: 100%;
-  min-height: 360px;
-  padding: 24px;
+  min-height: 300px;
+  padding: 20px;
   margin: 10px 0;
-  border: none;
   border-radius: 16px;
+  border: none;
   font-size: 17px;
   line-height: 1.8;
   resize: none;
-  overflow: hidden;
-  background: transparent;
+  background-size: cover;
+  background-position: center;
   color: #222;
   font-family: "SimSun", serif;
 }
 
-/* 普通按钮 */
 button {
-  padding: 12px 16px;
-  background: #33261c;
-  color: #fff;
+  width: 100%;
+  padding: 14px;
   border: none;
   border-radius: 12px;
-  margin: 6px 0;
-  cursor: pointer;
+  background: #33261c;
+  color: #fff;
   font-size: 16px;
   font-family: "SimSun", serif;
+  margin: 6px 0;
+  cursor: pointer;
 }
 
-/* 信纸选择区域 */
-.paper-style {
-  margin: 10px 0;
+.upload-area button {
+  background: #5c4b3b;
 }
 
-/* 所有信纸样式 纯色+图片 */
-.paper-white { background:#fff; }
-
-.paper-blue {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-green {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-red {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-whiteimg {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png");
-  background-size: cover;
-  background-position: center;
-}
-.paper-yellow {
-  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png");
-  background-size: cover;
-  background-position: center;
-}
-
-/* 上传图片：只显示文字名称，隐藏大图 */
-.upload-area {
-  margin: 10px 0;
-}
 #imagePreview {
   font-size: 14px;
   color: #555;
-  padding: 4px 0;
+  padding: 6px 0;
 }
-#imagePreview img {
-  display: none;
-}
+
+.paper-white { background:#fff; }
+.paper-blue { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png"); }
+.paper-green { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png"); }
+.paper-red { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png"); }
+.paper-whiteimg { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png"); }
+.paper-yellow { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png"); }
