@@ -206,13 +206,13 @@ async function loadLetters() {
 // 假删除
 // ======================
 async function del(id) {
-  if (!confirm("确定移到回收站？")) return;
+  if (!confirm("确定删除信件？可在回收站找回")) return;
   await client.from("letters").update({ is_deleted: true }).eq("id", id);
   loadLetters();
 }
 
 // ======================
-// 回收站（仅恢复）
+// 回收站
 // ======================
 async function loadRecycle() {
   const { data, error } = await client.from("letters")
