@@ -43,6 +43,18 @@ button {
   padding: 8px;
 }
 
+.upload-area {
+  margin: 10px 0;
+}
+#imagePreview {
+  margin: 8px 0;
+}
+#imagePreview img {
+  max-width: 180px;
+  max-height: 180px;
+  border-radius: 12px;
+}
+
 #letters-list {
   margin-top: 20px;
 }
@@ -83,10 +95,18 @@ button {
   font-size: 16px;
   white-space: pre-wrap;
   display: -webkit-box;
-  -webkit-line-clamp: 1; /* 只显示 1 行 */
+  -webkit-line-clamp: 1;
   -webkit-box-orient: vertical;
   overflow: hidden;
   cursor: pointer;
+}
+
+.msg img {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 10px;
+  margin: 6px 0;
+  display: block;
 }
 
 .info {
