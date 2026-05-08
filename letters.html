@@ -25,9 +25,9 @@
 
   <input id="search" oninput="loadLetters()" placeholder="搜索信件内容...">
 
-  <div style="margin:10px 0;">
-    <button onclick="loadLettersFilter('me')">我发出的</button>
-    <button onclick="loadLettersFilter('other')">我收到的</button>
+  <div class="filter-btn-group">
+  <button onclick="loadLettersFilter('me')">我发出的</button>
+  <button onclick="loadLettersFilter('other')">我收到的</button>
   </div>
 
   <div id="letters-list"></div>
