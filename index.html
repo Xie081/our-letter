@@ -26,18 +26,11 @@
 
   <h2>写一封信</h2>
 
-  <!-- 👇 👇 这里变成可输入的心情 👇 👇 -->
-  <input 
-    id="moodInput" 
-    placeholder="今天是什么心情~" 
-    style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"
-  >
+  <input id="moodInput" placeholder="今天是什么心情~">
   <div id="moodShow"></div>
-  <!-- 👆 👆 心情输入框 👆 👆 -->
 
-  <!-- 信纸背景切换 -->
   <div class="paper-style">
-    <select id="paperSelect">
+    <select id="paperSelect" onchange="previewPaper(this.value)">
       <option value="paper-white">纯白信纸</option>
       <option value="paper-pink">温柔浅粉</option>
       <option value="paper-nature">清新浅绿</option>
@@ -45,7 +38,6 @@
     </select>
   </div>
 
-  <!-- 图片上传 -->
   <div class="upload-area">
     <input type="file" id="imageInput" accept="image/*" style="display:none;">
     <button onclick="document.getElementById('imageInput').click()">📷选择图片</button>
