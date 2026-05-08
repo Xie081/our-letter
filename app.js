@@ -238,7 +238,8 @@ async function loadRecycle() {
         <div class="msg" onclick="showDetail(${letter.id})">${showContent}</div>
         <div class="info">
           <span>${new Date(letter.created_at).toLocaleString()}</span>
-          <button onclick="recoverLetter(${letter.id})" style="background:#28a745;color:white;padding:4px 8px;border-radius:6px;">恢复</button>
+          <button onclick="recoverLetter(${letter.id})" style="background:#28a745;color:white;padding:4px 8px;border-radius:6px;margin-right:6px;">恢复</button>
+          <button onclick="hardDelete(${letter.id})" style="background:#dc3545;color:white;padding:4px 8px;border-radius:6px;">彻底删除</button>
         </div>
       </div>
     `;
@@ -249,6 +250,12 @@ async function loadRecycle() {
 async function recoverLetter(id) {
   await client.from("letters").update({ is_deleted: false }).eq("id", id);
   alert("已恢复到信件列表");
+  loadRecycle();
+}
+// 回收站彻底删除（永久删除不可恢复）
+async function hardDelete(id) {
+  if (!confirm("确定彻底删除？删除后无法找回！")) return;
+  await client.from("letters").delete().eq("id", id);
   loadRecycle();
 }
 
