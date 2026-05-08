@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>所有信件</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="auth-section">
+  <h2>请先登录</h2>
+  <input type="email" id="email" placeholder="邮箱">
+  <input type="password" id="password" placeholder="密码">
+  <button onclick="login()">登录</button>
+</div>
+
+<div id="letter-section" style="display:none;">
+  <button onclick="window.location.href='index.html'" style="width:100%;margin-bottom:10px;">
+    返回写信
+  </button>
+  <button onclick="window.location.href='recycle.html'" style="width:100%;margin-bottom:10px;background:#666;">
+    回收站
+  </button>
+
+  <input id="search" oninput="loadLetters()" placeholder="搜索信件内容...">
+
+  <div style="margin:10px 0;">
+    <button onclick="loadLettersFilter('me')">我发出的</button>
+    <button onclick="loadLettersFilter('other')">我收到的</button>
+  </div>
+
+  <div id="letters-list"></div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+</body>
+</html>
