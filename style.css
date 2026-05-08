@@ -5,115 +5,110 @@
   font-family: "SimSun", serif;
 }
 
-/* 全局改成浅色背景，和参考图的柔和感一致 */
+/* 全局改成参考图的温柔米色背景 */
 html, body {
   width: 100%;
   min-height: 100vh;
-  background: #f8f7f9; /* 极浅米白底色 */
-  padding: 0;
-}
-
-/* 写信页容器，让输入框占满大部分空间 */
-#letter-section {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+  background: #f0eadd; /* 和参考图一致的米杏色底色 */
   padding: 16px;
-}
-
-/* 顶部导航按钮，改成柔和风格 */
-#letter-section > button {
-  background: transparent;
-  color: #666;
-  border: 1px solid #ddd;
-  width: auto;
-  padding: 8px 16px;
-  border-radius: 20px;
-  margin-bottom: 16px;
-}
-
-/* 标题，弱化存在感，和参考图一致 */
-h2 {
-  font-size: 22px;
   color: #333;
-  margin-bottom: 16px;
+}
+
+/* 标题样式 */
+h2 {
+  font-size: 32px;
+  margin-bottom: 24px;
+  color: #33261c; /* 深棕色标题，和参考图一致 */
   font-weight: normal;
 }
 
-/* 心情输入框，去掉边框，更柔和 */
-#moodInput {
-  width: 100%;
-  padding: 12px 16px;
-  border: none;
-  border-radius: 12px;
-  background: #fff;
-  font-size: 16px;
-  margin-bottom: 8px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-#moodShow {
-  font-size: 14px;
-  font-family: "KaiTi", serif;
-  color: #888;
-  margin-bottom: 16px;
-  padding-left: 8px;
-}
-
-/* 信纸选择下拉，简化样式 */
-.paper-style select {
-  padding: 8px 12px;
-  border: none;
-  border-radius: 8px;
-  background: #fff;
-  font-size: 15px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-
-/* 核心修改：写信输入框，和参考图一样无框、全屏融入信纸 */
-textarea {
-  width: 100%;
-  flex: 1; /* 占满剩余空间 */
-  min-height: 300px;
-  padding: 24px;
-  border: none;
-  border-radius: 16px;
-  font-size: 18px;
-  line-height: 1.8;
-  resize: none;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  background: #fff;
-}
-
-/* 按钮样式，改成柔和浅色 */
+/* 顶部导航按钮 */
 button {
-  background: #333;
-  color: white;
-  border: none;
-  border-radius: 12px;
   padding: 14px;
-  margin-top: 16px;
-  font-size: 16px;
-}
-
-/* 上传图片区域 */
-.upload-area button {
-  background: #eee;
-  color: #333;
-  width: auto;
-  margin: 10px 0;
-}
-
-#imagePreview img {
-  max-width: 180px;
-  max-height: 180px;
   border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  font-family: "SimSun", serif;
+  cursor: pointer;
+  margin: 8px 0;
+  transition: opacity 0.2s ease;
 }
 
-/* 信纸样式（保留你现有的） */
+button:hover {
+  opacity: 0.9;
+}
+
+/* 深色主按钮（和「准备拆开」按钮风格一致） */
+button.primary {
+  background: #33261c;
+  color: white;
+}
+
+button.secondary {
+  background: #666;
+  color: white;
+}
+
+/* 信件卡片核心样式（和参考图信封卡片一致） */
+.letter-card {
+  background: #f5ead8; /* 信封卡片底色，和参考图匹配 */
+  border-radius: 16px;
+  padding: 20px;
+  margin: 16px 0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.letter-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+/* 头像样式（和参考图圆形头像一致） */
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #d4c1a8; /* 浅棕头像背景色 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 18px;
+  margin-right: 12px;
+}
+
+.sender-info {
+  flex: 1;
+}
+
+.sender-name {
+  font-size: 18px;
+  color: #33261c;
+}
+
+.sender-time {
+  font-size: 14px;
+  color: #887;
+}
+
+/* 信件预览文字 */
+.letter-preview {
+  font-size: 20px;
+  line-height: 1.8;
+  margin: 16px 0;
+  color: #33261c;
+}
+
+.letter-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  color: #887;
+}
+
+/* 信纸样式（保留你现有的图片背景） */
 .paper-white { background:#fff; }
 .paper-blue {
   background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png");
@@ -146,21 +141,40 @@ button {
   color: #222 !important;
 }
 
-/* 信件列表和气泡样式（保留，不影响写信页） */
-#letters-list { margin-top:20px; }
-.letter { display:flex; margin:10px 0; }
-.letter.me { justify-content:flex-end; }
-.letter.you { justify-content:flex-start; }
-.bubble {
-  max-width:75%;
-  padding:14px 16px;
-  border-radius:18px;
-  background:#e9e9eb;
-  font-family: "SimSun", serif;
+/* 其他基础控件样式（和写信页统一） */
+#moodInput, .paper-style select, #search {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 16px;
+  margin: 8px 0;
 }
-.letter.me .bubble { background:#0d7aff; color:white; }
-.name { font-size:12px; opacity:0.6; margin-bottom:6px; }
-.msg { line-height:1.6; font-size:16px; white-space:pre-wrap; cursor:pointer; }
-.msg img { max-width:100%; max-height:300px; border-radius:10px; margin:6px 0; display:block; }
-.info { display:flex; justify-content:space-between; font-size:12px; opacity:0.7; margin-top:8px; }
-.info button { background:none; color:inherit; font-size:14px; padding:0; }
+
+#moodShow {
+  font-size: 14px;
+  font-family: "KaiTi", serif;
+  color: #888;
+  margin: 4px 0 16px;
+}
+
+textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  font-size: 18px;
+  line-height: 1.8;
+  resize: none;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  background: #fff;
+}
+
+#imagePreview img {
+  max-width: 180px;
+  border-radius: 12px;
+  margin: 8px 0;
+}
