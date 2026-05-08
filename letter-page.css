@@ -1,0 +1,151 @@
+/* ========== 信件展示页面 独立样式 只给 letters.html 用 ========== */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: "SimSun", serif;
+}
+
+html, body {
+  background: #f8f5f0;
+  padding: 12px;
+}
+
+h2 {
+  font-size: 24px;
+  color: #443a30;
+  margin-bottom: 20px;
+  font-weight: normal;
+}
+
+/* 搜索、按钮通用 */
+input#search {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid #e0d8cc;
+  background: #fff;
+  font-size: 16px;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.btn-group button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #443a30;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+/* 核心：一行两列 信件卡片网格 */
+#letters-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+/* 单张信件卡片 */
+.letter-card {
+  border-radius: 16px;
+  padding: 18px;
+  min-height: 180px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #333;
+}
+
+/* 卡片文字预览：只显示2行 */
+.letter-preview {
+  font-size: 15px;
+  line-height: 1.6;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.letter-time {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 10px;
+}
+
+/* 弹窗遮罩 */
+.letter-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+/* 弹窗里完整信纸 */
+.modal-content {
+  width: 100%;
+  max-width: 500px;
+  padding: 30px;
+  border-radius: 20px;
+  font-size: 16px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  color: #222 !important;
+}
+
+.close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+/* 信纸背景类 和 你现有一致 */
+.paper-white { background:#ffffff; }
+.paper-blue {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-green {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-red {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-whiteimg {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png");
+  background-size: cover;
+  background-position: center;
+}
+.paper-yellow {
+  background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png");
+  background-size: cover;
+  background-position: center;
+}
