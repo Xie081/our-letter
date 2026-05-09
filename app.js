@@ -239,7 +239,7 @@ async function saveFullLetterAsImg(id) {
 
     // 显示加载提示
     const loadingMsg = document.createElement('div');
-    loadingMsg.textContent = '⏳ 正在生成图片，请稍候...';
+    loadingMsg.textContent = '正在生成图片，请稍候...';
     loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:10000; font-size:14px;';
     document.body.appendChild(loadingMsg);
 
@@ -317,7 +317,7 @@ async function saveFullLetterAsImg(id) {
         link.href = canvas.toDataURL("image/png");
         link.click();
         
-        alert("✓ 保存成功！");
+        alert("已保存到相册");
         
         // 清理临时元素
         document.body.removeChild(tempDiv);
@@ -344,7 +344,7 @@ async function saveFullLetterAsPdf(id) {
     if (!letter) return;
     
     const loadingMsg = document.createElement('div');
-    loadingMsg.textContent = '⏳ 正在生成PDF，请稍候...';
+    loadingMsg.textContent = '正在生成PDF，请稍候...';
     loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:10000;';
     document.body.appendChild(loadingMsg);
     
@@ -398,7 +398,7 @@ async function saveFullLetterAsPdf(id) {
         // 下载 - 文件名格式：信件_20240101_120000.pdf
         pdf.save(`信件_${timestamp}.pdf`);
         
-        alert("✓ PDF保存成功！");
+        alert("PDF保存成功，可下载到本地");
         
         document.body.removeChild(tempDiv);
     } catch (error) {
