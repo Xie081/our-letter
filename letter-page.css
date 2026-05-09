@@ -3,7 +3,7 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "SimSun", serif;
+  font-family: "SimSun", "宋体", "Songti SC", "Times New Roman", serif;
 }
 
 html, body {
@@ -73,38 +73,33 @@ button {
 .letter-time {
   font-size: 12px;
   opacity: 0.7;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
-/* 右上角 小型删除按钮 */
-.card-del-btn-sm {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: auto !important;
-  padding: 3px 8px !important;
-  font-size: 12px !important;
-  background: #b86b6b !important;
-  border-radius: 6px !important;
-  z-index: 10;
-}
-
-/* 卡片底部保存按钮组 */
-.card-save-row {
+/* 👉 底部按钮行：三个按钮同一行 */
+.card-btn-row {
   display: flex;
-  gap: 8px;
-  margin-top: auto;
-  padding-top: 8px;
+  gap: 6px;
+  justify-content: space-between;
 }
-.save-img-btn-sm, .save-pdf-btn-sm {
+
+/* 👉 统一按钮样式（三个按钮） */
+.card-btn-row button {
   flex: 1;
+  padding: 4px 6px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
   width: auto !important;
-  padding: 8px !important;
-  font-size: 13px !important;
-  border-radius: 8px !important;
 }
-.save-pdf-btn-sm {
-  background: #6b8c78 !important;
+
+/* 删除按钮：红色 */
+.card-del-btn-sm {
+  background: #b86b6b !important;
+}
+
+/* 两个保存按钮：统一深色 */
+.save-img-btn-sm, .save-pdf-btn-sm {
+  background: #33261c !important;
 }
 
 /* 弹窗样式 */
