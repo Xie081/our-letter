@@ -27,6 +27,7 @@ button {
   font-size: 16px;
   margin: 6px 0;
   cursor: pointer;
+  font-family: inherit;
 }
 
 #recycle-list {
@@ -67,6 +68,7 @@ button {
   font-size: 12px;
   opacity: 0.7;
   margin-bottom: 12px;
+  font-family: inherit;
 }
 
 .card-btn-group {
@@ -81,6 +83,7 @@ button {
   padding: 6px 12px !important;
   font-size: 13px !important;
   border-radius: 8px !important;
+  font-family: inherit;
 }
 
 .btn-delete-full {
@@ -89,6 +92,7 @@ button {
   padding: 6px 12px !important;
   font-size: 13px !important;
   border-radius: 8px !important;
+  font-family: inherit;
 }
 
 .letter-modal {
@@ -102,11 +106,12 @@ button {
   padding: 20px;
 }
 
+/* 👉 缩小弹窗上下边距（和信件页同步） */
 .modal-content {
   max-width: 500px;
   max-height: 80vh;
   overflow-y: auto;
-  padding: 30px;
+  padding: 10px 20px;
   border-radius: 20px;
   font-size: 16px;
   line-height: 1.8;
@@ -121,17 +126,24 @@ button {
   font-family: "KaiTi", "STKaiti", serif;
 }
 
+/* 👉 优化关闭按钮（红色醒目） */
 .close-btn {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  width: 40px;
-  height: 40px;
+  top: 10px;
+  right: 10px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  background: #fff;
+  background: #b86b6b;
   border: none;
-  font-size: 20px;
+  font-size: 22px;
+  color: white;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  font-family: inherit;
 }
 
 .paper-white { background:#fff; }
