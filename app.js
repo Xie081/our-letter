@@ -222,82 +222,191 @@ function getFullLetterById(id) {
   return allLetterData.find(item => item.id === id);
 }
 
-// 保存整封信件为长图
+// ======================
+// 保存完整长图 - 最稳定版本
+// ======================
 async function saveFullLetterAsImg(id) {
-  if (!window.html2canvas) {
-    alert("请引入html2canvas库");
-    return;
-  }
-  const letter = getFullLetterById(id);
-  if (!letter) return;
+    if (!window.html2canvas) {
+        alert("请先引入 html2canvas 库！\n在HTML中添加：<script src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'></script>");
+        return;
+    }
+    
+    const letter = getFullLetterById(id);
+    if (!letter) {
+        alert("未找到信件数据");
+        return;
+    }
 
-  // 临时创建隐藏容器 渲染整封信件+背景
-  const temp = document.createElement("div");
-  temp.style.position = "absolute";
-  temp.style.left = "-9999px";
-  temp.style.width = "450px";
-  temp.className = `modal-content ${letter.paper_style || 'paper-white'}`;
-  temp.style.padding = "30px";
-  temp.style.fontSize = "16px";
-  temp.style.lineHeight = "1.8";
-  temp.style.whiteSpace = "pre-wrap";
-  temp.innerHTML = letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">');
+    // 显示加载提示
+    const loadingMsg = document.createElement('div');
+    loadingMsg.textContent = '⏳ 正在生成图片，请稍候...';
+    loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:10000; font-size:14px;';
+    document.body.appendChild(loadingMsg);
 
-  document.body.appendChild(temp);
-
-  const canvas = await html2canvas(temp, {
-    useCORS: true,
-    scale: 2,
-    backgroundColor: null
-  });
-
-  const link = document.createElement("a");
-  link.download = "完整信件_" + new Date().getTime() + ".png";
-  link.href = canvas.toDataURL("image/png");
-  link.click();
-
-  document.body.removeChild(temp);
+    try {
+        // 创建临时容器 - 关键：设置高度自动，让内容完全展开
+        const tempDiv = document.createElement("div");
+        tempDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 500px;
+            max-width: 90vw;
+            z-index: -9999;
+            opacity: 0;
+            pointer-events: none;
+        `;
+        
+        // 内容容器
+        const contentDiv = document.createElement("div");
+        contentDiv.className = `modal-content ${letter.paper_style || 'paper-white'}`;
+        contentDiv.style.cssText = `
+            padding: 40px 35px;
+            font-size: 16px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+            height: auto;
+            overflow: visible;
+            max-height: none;
+        `;
+        
+        // 处理内容：转换图片和换行
+        let htmlContent = letter.content;
+        htmlContent = htmlContent.replace(/!\[img]\((.*?)\)/g, (match, url) => {
+            return `<img src="${url}" style="max-width:100%; border-radius:12px; margin:16px 0; display:block;" crossorigin="anonymous">`;
+        });
+        htmlContent = htmlContent.replace(/\n/g, '<br>');
+        contentDiv.innerHTML = htmlContent;
+        
+        tempDiv.appendChild(contentDiv);
+        document.body.appendChild(tempDiv);
+        
+        // 等待所有图片加载完成
+        const images = contentDiv.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => {
+                img.onload = resolve;
+                img.onerror = () => {
+                    console.warn('图片加载失败:', img.src);
+                    resolve();
+                };
+            });
+        }));
+        
+        // 等待DOM完全渲染（关键步骤）
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // 获取完整尺寸并截图
+        const canvas = await html2canvas(contentDiv, {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: null,
+            logging: false,
+            allowTaint: false
+        });
+        
+        // 获取当前时间戳
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        
+        // 下载 - 文件名格式：信件_20240101_120000.png
+        const link = document.createElement("a");
+        link.download = `信件_${timestamp}.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+        
+        alert("✓ 保存成功！");
+        
+        // 清理临时元素
+        document.body.removeChild(tempDiv);
+        
+    } catch (error) {
+        console.error('保存失败:', error);
+        alert("保存失败：" + error.message + "\n\n如果问题持续，请尝试：\n1. 检查网络连接\n2. 减少图片数量\n3. 刷新页面重试");
+    } finally {
+        if (loadingMsg.parentNode) loadingMsg.parentNode.removeChild(loadingMsg);
+    }
 }
 
-// 保存整封信件为PDF
+// ======================
+// 保存完整PDF - 最稳定版本
+// ======================
 async function saveFullLetterAsPdf(id) {
-  if (!window.jspdf) {
-    alert("请引入jspdf库");
-    return;
-  }
-  const { jsPDF } = window.jspdf;
-  const letter = getFullLetterById(id);
-  if (!letter) return;
-
-  const temp = document.createElement("div");
-  temp.style.position = "absolute";
-  temp.style.left = "-9999px";
-  temp.style.width = "450px";
-  temp.className = `modal-content ${letter.paper_style || 'paper-white'}`;
-  temp.style.padding = "30px";
-  temp.style.fontSize = "16px";
-  temp.style.lineHeight = "1.8";
-  temp.style.whiteSpace = "pre-wrap";
-  temp.innerHTML = letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">');
-
-  document.body.appendChild(temp);
-
-  const canvas = await html2canvas(temp, {
-    useCORS: true,
-    scale: 2,
-    backgroundColor: null
-  });
-
-  const imgData = canvas.toDataURL("image/jpeg", 1.0);
-  const pdf = new jsPDF({
-    orientation: "portrait",
-    unit: "px",
-    format: [canvas.width, canvas.height]
-  });
-  pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
-  pdf.save("完整信件_" + new Date().getTime() + ".pdf");
-
-  document.body.removeChild(temp);
+    if (!window.jspdf || !window.html2canvas) {
+        alert("请先引入 jspdf 和 html2canvas 库！");
+        return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const letter = getFullLetterById(id);
+    if (!letter) return;
+    
+    const loadingMsg = document.createElement('div');
+    loadingMsg.textContent = '⏳ 正在生成PDF，请稍候...';
+    loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:10000;';
+    document.body.appendChild(loadingMsg);
+    
+    try {
+        const tempDiv = document.createElement("div");
+        tempDiv.style.cssText = 'position:fixed; top:0; left:0; width:500px; max-width:90vw; z-index:-9999; opacity:0; pointer-events:none;';
+        
+        const contentDiv = document.createElement("div");
+        contentDiv.className = `modal-content ${letter.paper_style || 'paper-white'}`;
+        contentDiv.style.cssText = 'padding:40px 35px; font-size:16px; line-height:1.8; white-space:pre-wrap; word-break:break-word; height:auto; overflow:visible; max-height:none;';
+        
+        let htmlContent = letter.content;
+        htmlContent = htmlContent.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%; border-radius:12px; margin:16px 0; display:block;" crossorigin="anonymous">');
+        htmlContent = htmlContent.replace(/\n/g, '<br>');
+        contentDiv.innerHTML = htmlContent;
+        
+        tempDiv.appendChild(contentDiv);
+        document.body.appendChild(tempDiv);
+        
+        const images = contentDiv.querySelectorAll('img');
+        await Promise.all(Array.from(images).map(img => {
+            if (img.complete) return Promise.resolve();
+            return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+        }));
+        
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        const canvas = await html2canvas(contentDiv, {
+            scale: 2.5,
+            useCORS: true,
+            backgroundColor: null,
+            logging: false
+        });
+        
+        const imgData = canvas.toDataURL("image/jpeg", 1.0);
+        const imgWidth = canvas.width;
+        const imgHeight = canvas.height;
+        
+        const pdf = new jsPDF({
+            orientation: imgHeight > imgWidth ? "portrait" : "landscape",
+            unit: "px",
+            format: [imgWidth, imgHeight]
+        });
+        
+        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+        
+        // 获取当前时间戳
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        
+        // 下载 - 文件名格式：信件_20240101_120000.pdf
+        pdf.save(`信件_${timestamp}.pdf`);
+        
+        alert("✓ PDF保存成功！");
+        
+        document.body.removeChild(tempDiv);
+    } catch (error) {
+        console.error('PDF生成失败:', error);
+        alert("生成失败：" + error.message);
+    } finally {
+        if (loadingMsg.parentNode) loadingMsg.parentNode.removeChild(loadingMsg);
+    }
 }
 
 // ======================
