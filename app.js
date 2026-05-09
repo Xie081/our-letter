@@ -8,7 +8,6 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let selectedImage = null;
 let filterType = "other";
-// 全局存当前所有信件完整数据，用于保存整封
 let allLetterData = [];
 
 // ======================
@@ -157,7 +156,7 @@ async function sendLetter() {
 }
 
 // ======================
-// 信件列表 卡片底部放保存按钮 + 删除缩小
+// 信件列表 —— 三个按钮同一行
 // ======================
 async function loadLettersFilter(type) {
   filterType = type;
@@ -188,14 +187,15 @@ async function loadLetters() {
 
     const card = document.createElement("div");
     card.className = `letter-card ${paper}`;
-    // 卡片结构：预览文字 + 时间 + 底部保存按钮 + 右上角小删除
+    
+    // 👉 三个按钮在同一行（存长图 + 存PDF + 删除）
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
       <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
-      <button class="card-del-btn-sm" onclick="del(${letter.id})">删除</button>
-      <div class="card-save-row">
+      <div class="card-btn-row">
         <button class="save-img-btn-sm" onclick="saveFullLetterAsImg(${letter.id})">存长图</button>
         <button class="save-pdf-btn-sm" onclick="saveFullLetterAsPdf(${letter.id})">存PDF</button>
+        <button class="card-del-btn-sm" onclick="del(${letter.id})">删除</button>
       </div>
     `;
 
@@ -204,7 +204,7 @@ async function loadLetters() {
   });
 }
 
-// 打开信件弹窗 无保存按钮
+// 打开信件弹窗
 function openFullLetter(letter) {
   const modal = document.createElement("div");
   modal.className = "letter-modal";
@@ -217,17 +217,17 @@ function openFullLetter(letter) {
   document.body.appendChild(modal);
 }
 
-// 根据id取完整信件 保存整封
+// 根据id取完整信件
 function getFullLetterById(id) {
   return allLetterData.find(item => item.id === id);
 }
 
 // ======================
-// 保存完整长图 - 最稳定版本
+// 保存完整长图
 // ======================
 async function saveFullLetterAsImg(id) {
     if (!window.html2canvas) {
-        alert("请先引入 html2canvas 库！\n在HTML中添加：<script src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'></script>");
+        alert("请先引入 html2canvas 库！");
         return;
     }
     
@@ -237,14 +237,12 @@ async function saveFullLetterAsImg(id) {
         return;
     }
 
-    // 显示加载提示
     const loadingMsg = document.createElement('div');
     loadingMsg.textContent = '正在生成图片，请稍候...';
     loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:10000; font-size:14px;';
     document.body.appendChild(loadingMsg);
 
     try {
-        // 创建临时容器 - 关键：设置高度自动，让内容完全展开
         const tempDiv = document.createElement("div");
         tempDiv.style.cssText = `
             position: fixed;
@@ -257,7 +255,6 @@ async function saveFullLetterAsImg(id) {
             pointer-events: none;
         `;
         
-        // 内容容器
         const contentDiv = document.createElement("div");
         contentDiv.className = `modal-content ${letter.paper_style || 'paper-white'}`;
         contentDiv.style.cssText = `
@@ -271,7 +268,6 @@ async function saveFullLetterAsImg(id) {
             max-height: none;
         `;
         
-        // 处理内容：转换图片和换行
         let htmlContent = letter.content;
         htmlContent = htmlContent.replace(/!\[img]\((.*?)\)/g, (match, url) => {
             return `<img src="${url}" style="max-width:100%; border-radius:12px; margin:16px 0; display:block;" crossorigin="anonymous">`;
@@ -282,23 +278,17 @@ async function saveFullLetterAsImg(id) {
         tempDiv.appendChild(contentDiv);
         document.body.appendChild(tempDiv);
         
-        // 等待所有图片加载完成
         const images = contentDiv.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
             return new Promise((resolve) => {
                 img.onload = resolve;
-                img.onerror = () => {
-                    console.warn('图片加载失败:', img.src);
-                    resolve();
-                };
+                img.onerror = () => resolve();
             });
         }));
         
-        // 等待DOM完全渲染（关键步骤）
         await new Promise(resolve => setTimeout(resolve, 300));
         
-        // 获取完整尺寸并截图
         const canvas = await html2canvas(contentDiv, {
             scale: 2.5,
             useCORS: true,
@@ -307,35 +297,31 @@ async function saveFullLetterAsImg(id) {
             allowTaint: false
         });
         
-        // 获取当前时间戳
         const now = new Date();
-        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
         
-        // 下载 - 文件名格式：信件_20240101_120000.png
         const link = document.createElement("a");
         link.download = `信件_${timestamp}.png`;
         link.href = canvas.toDataURL("image/png");
         link.click();
         
-        alert("已保存到相册");
-        
-        // 清理临时元素
+        alert("已保存成功！");
         document.body.removeChild(tempDiv);
         
     } catch (error) {
         console.error('保存失败:', error);
-        alert("保存失败：" + error.message + "\n\n如果问题持续，请尝试：\n1. 检查网络连接\n2. 减少图片数量\n3. 刷新页面重试");
+        alert("保存失败：" + error.message);
     } finally {
         if (loadingMsg.parentNode) loadingMsg.parentNode.removeChild(loadingMsg);
     }
 }
 
 // ======================
-// 保存完整PDF - 最稳定版本
+// 保存完整PDF
 // ======================
 async function saveFullLetterAsPdf(id) {
     if (!window.jspdf || !window.html2canvas) {
-        alert("请先引入 jspdf 和 html2canvas 库！");
+        alert("请先引入依赖库！");
         return;
     }
     
@@ -367,7 +353,7 @@ async function saveFullLetterAsPdf(id) {
         const images = contentDiv.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
-            return new Promise((resolve) => { img.onload = resolve; img.onerror = resolve; });
+            return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
         }));
         
         await new Promise(resolve => setTimeout(resolve, 300));
@@ -380,25 +366,19 @@ async function saveFullLetterAsPdf(id) {
         });
         
         const imgData = canvas.toDataURL("image/jpeg", 1.0);
-        const imgWidth = canvas.width;
-        const imgHeight = canvas.height;
-        
         const pdf = new jsPDF({
-            orientation: imgHeight > imgWidth ? "portrait" : "landscape",
+            orientation: canvas.height > canvas.width ? "portrait" : "landscape",
             unit: "px",
-            format: [imgWidth, imgHeight]
+            format: [canvas.width, canvas.height]
         });
         
-        pdf.addImage(imgData, "JPEG", 0, 0, imgWidth, imgHeight);
+        pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
         
-        // 获取当前时间戳
         const now = new Date();
-        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
         
-        // 下载 - 文件名格式：信件_20240101_120000.pdf
         pdf.save(`信件_${timestamp}.pdf`);
-        
-        alert("PDF保存成功，可下载到本地");
+        alert("PDF保存成功！");
         
         document.body.removeChild(tempDiv);
     } catch (error) {
@@ -419,7 +399,7 @@ async function del(id) {
 }
 
 // ======================
-// 回收站 卡片无保存按钮
+// 回收站
 // ======================
 async function loadRecycle() {
   const { data: { user } } = await client.auth.getUser();
@@ -437,7 +417,6 @@ async function loadRecycle() {
 
     const card = document.createElement("div");
     card.className = `letter-card ${paper}`;
-    // 回收站只保留预览、时间、恢复/彻底删除，**无保存按钮**
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
       <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
