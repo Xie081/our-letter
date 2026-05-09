@@ -3,7 +3,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "SimSun", "宋体", "Songti SC", "Times New Roman", serif;
 }
 
 html, body {
@@ -28,6 +27,8 @@ button {
   font-size: 16px;
   margin: 6px 0;
   cursor: pointer;
+  /* 按钮用默认字体，不继承宋体 */
+  font-family: inherit;
 }
 
 /* 👉 过滤按钮组：我发出的 / 我收到的，一行显示 */
@@ -40,9 +41,10 @@ button {
   flex: 1;
 }
 
+/* 一行一个竖向列表 */
 #letters-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
   margin-top: 10px;
 }
@@ -50,7 +52,7 @@ button {
 .letter-card {
   border-radius: 16px;
   padding: 18px;
-  min-height: 180px;
+  min-height: 120px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
@@ -60,7 +62,9 @@ button {
   position: relative;
 }
 
+/* 仅信件预览内容：宋体 */
 .letter-preview {
+  font-family: "SimSun", serif;
   font-size: 15px;
   line-height: 1.6;
   overflow: hidden;
@@ -70,50 +74,44 @@ button {
   margin-bottom: 8px;
 }
 
+/* 今日心情单独楷体 */
+.letter-preview .mood-tag {
+  font-family: "KaiTi", "STKaiti", serif;
+}
+
+/* 时间用默认字体 */
 .letter-time {
   font-size: 12px;
   opacity: 0.7;
   margin-bottom: 12px;
+  font-family: inherit;
 }
 
-/* 👉 底部按钮行：三个按钮同一行 */
+/* 底部按钮行 */
 .card-btn-row {
   display: flex;
   gap: 6px;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
-/* 👉 统一按钮样式（三个按钮） */
 .card-btn-row button {
-  flex: 1;
-  padding: 4px 6px !important;
+  width: auto !important;
+  padding: 4px 10px !important;
   font-size: 11px !important;
   border-radius: 6px !important;
-  width: auto !important;
+  font-family: inherit;
 }
 
-/* 删除按钮：红色 */
+/* 删除按钮红色 */
 .card-del-btn-sm {
   background: #b86b6b !important;
 }
-
-/* 两个保存按钮：统一深色 */
+/* 保存按钮同色 */
 .save-img-btn-sm, .save-pdf-btn-sm {
   background: #33261c !important;
 }
 
-/* 弹窗样式 */
-.letter-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  padding: 20px;
-}
-
+/* 仅弹窗信件正文：宋体 */
 .modal-content {
   max-width: 500px;
   max-height: 80vh;
@@ -126,6 +124,23 @@ button {
   background-size: cover;
   background-position: center;
   background-repeat: repeat-y;
+  font-family: "SimSun", serif;
+}
+
+/* 弹窗心情楷体 */
+.modal-content .mood-tag {
+  font-family: "KaiTi", "STKaiti", serif;
+}
+
+.letter-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
 }
 
 .close-btn {
@@ -139,6 +154,7 @@ button {
   border: none;
   font-size: 20px;
   cursor: pointer;
+  font-family: inherit;
 }
 
 /* 信纸背景 */
