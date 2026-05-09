@@ -3,7 +3,6 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "SimSun", serif;
 }
 
 html, body {
@@ -31,8 +30,8 @@ button {
 }
 
 #recycle-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 14px;
   margin-top: 10px;
 }
@@ -40,50 +39,56 @@ button {
 .letter-card {
   border-radius: 16px;
   padding: 18px;
-  min-height: 180px;
+  min-height: 120px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   background-size: cover;
   background-position: center;
+  cursor: pointer;
 }
 
 .letter-preview {
+  font-family: "SimSun", serif;
   font-size: 15px;
   line-height: 1.6;
   overflow: hidden;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
-  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.letter-preview .mood-tag {
+  font-family: "KaiTi", "STKaiti", serif;
 }
 
 .letter-time {
   font-size: 12px;
   opacity: 0.7;
-  margin-top: 10px;
+  margin-bottom: 12px;
 }
 
 .card-btn-group {
   display: flex;
   gap: 8px;
-  margin-top: 12px;
-}
-
-.card-btn-group button {
-  flex: 1;
-  padding: 8px;
-  font-size: 14px;
-  border-radius: 8px;
+  justify-content: flex-end;
 }
 
 .btn-restore {
-  background: #6b8c78;
+  background: #6b8c78 !important;
+  width: auto !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
 }
 
 .btn-delete-full {
-  background: #b86b6b;
+  background: #b86b6b !important;
+  width: auto !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
 }
 
 .letter-modal {
@@ -108,6 +113,12 @@ button {
   white-space: pre-wrap;
   background-size: cover;
   background-position: center;
+  background-repeat: repeat-y;
+  font-family: "SimSun", serif;
+}
+
+.modal-content .mood-tag {
+  font-family: "KaiTi", "STKaiti", serif;
 }
 
 .close-btn {
