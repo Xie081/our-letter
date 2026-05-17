@@ -300,6 +300,9 @@ async function loadLetters() {
 
 function renderLettersPagination() {
   const list = document.getElementById("letters-list");
+  // 移除旧的分页控件
+  document.querySelectorAll(".pagination").forEach(el => el.remove());
+
   const totalPages = Math.ceil(lettersTotal / PAGE_SIZE);
   if (totalPages <= 1) return;
 
@@ -568,6 +571,7 @@ async function loadRecycle() {
 
 function renderRecyclePagination() {
   const list = document.getElementById("recycle-list");
+  document.querySelectorAll(".pagination").forEach(el => el.remove());
   const totalPages = Math.ceil(recycleTotal / PAGE_SIZE);
   if (totalPages <= 1) return;
 
