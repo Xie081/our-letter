@@ -1,0 +1,29 @@
+/* ========== 回收站专用 ========== */
+#recycle-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.card-btn-group {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.btn-restore {
+  background: var(--btn-success) !important;
+  width: auto !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}
+
+.btn-delete-full {
+  background: var(--btn-danger) !important;
+  width: auto !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border-radius: 8px !important;
+}

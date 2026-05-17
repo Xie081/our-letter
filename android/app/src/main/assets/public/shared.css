@@ -1,0 +1,263 @@
+/* ========== 全局共用样式 ========== */
+
+/* 亮色/暗色主题变量 */
+:root {
+  --bg-body: #f0eadd;
+  --bg-surface: #fff;
+  --text-primary: #33261c;
+  --text-secondary: #666;
+  --text-preview: #555;
+  --text-onbtn: #fff;
+  --btn-primary: #33261c;
+  --btn-upload: #5c4b3b;
+  --btn-danger: #b86b6b;
+  --btn-success: #6b8c78;
+  --border-light: #ddd;
+  --overlay-bg: rgba(0, 0, 0, 0.25);
+  --overlay-dark: rgba(0, 0, 0, 0.85);
+  --card-shadow: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-mode {
+  --bg-body: #1a1a2e;
+  --bg-surface: #2a2a40;
+  --text-primary: #e0d6cc;
+  --text-secondary: #a09888;
+  --text-preview: #a09888;
+  --text-onbtn: #e0d6cc;
+  --btn-primary: #3a3a5e;
+  --btn-upload: #3a3a5e;
+  --btn-danger: #b86b6b;
+  --btn-success: #6b8c78;
+  --border-light: #3a3a50;
+  --overlay-bg: rgba(0, 0, 0, 0.6);
+  --overlay-dark: rgba(0, 0, 0, 0.9);
+  --card-shadow: rgba(0, 0, 0, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--bg-body);
+  padding: 16px;
+  color: var(--text-primary);
+  font-family: "SimSun", serif;
+  transition: background 0.3s, color 0.3s;
+}
+
+h2 {
+  font-size: 28px;
+  margin-bottom: 20px;
+  font-weight: normal;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 16px;
+  margin: 8px 0;
+  border-radius: 12px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-surface);
+  font-size: 16px;
+  outline: none;
+  font-family: "SimSun", serif;
+  transition: background 0.3s, border-color 0.3s;
+}
+
+button {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 12px;
+  background: var(--btn-primary);
+  color: var(--text-onbtn);
+  font-size: 16px;
+  margin: 6px 0;
+  cursor: pointer;
+  font-family: "SimSun", serif;
+  transition: background 0.3s;
+}
+
+/* 信纸背景 */
+.paper-white { background: #fff; }
+.paper-blue { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png"); }
+.paper-green { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png"); }
+.paper-red { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png"); }
+.paper-whiteimg { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png"); }
+.paper-yellow { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png"); }
+
+/* 暗色模式下的信纸覆盖 */
+body.dark-mode .paper-white { background: #2a2a40; }
+
+/* 模态框共用 */
+.letter-modal {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+  transition: background 0.3s;
+}
+
+.letter-modal .close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--btn-danger);
+  border: none;
+  font-size: 22px;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content {
+  position: relative;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  border-radius: 20px;
+  font-size: 16px;
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background-size: cover;
+  background-position: center;
+  background-repeat: repeat-y;
+  font-family: "SimSun", serif;
+}
+
+/* 暗色模式弹窗内容覆盖 */
+body.dark-mode .modal-content {
+  color: #e0d6cc;
+}
+
+/* 有背景图的信纸在暗色模式下保持深色文字（置于 .modal-content 之后以覆盖） */
+body.dark-mode .paper-blue,
+body.dark-mode .paper-green,
+body.dark-mode .paper-red,
+body.dark-mode .paper-whiteimg,
+body.dark-mode .paper-yellow {
+  color: #33261c;
+}
+
+/* 图片大图查看器 */
+.image-viewer {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 30px;
+  cursor: zoom-out;
+}
+
+.image-viewer img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* 暗黑模式切换按钮 */
+.dark-toggle {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--btn-primary);
+  color: var(--text-onbtn);
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  padding: 0;
+  margin: 0;
+  transition: background 0.3s;
+}
+
+/* 卡片共用 */
+.letter-card {
+  border-radius: 16px;
+  padding: 18px;
+  min-height: 120px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  display: flex;
+  flex-direction: column;
+  background-size: cover;
+  background-position: center;
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+}
+
+.letter-preview {
+  font-family: "SimSun", serif;
+  font-size: 15px;
+  line-height: 1.6;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  margin-bottom: 8px;
+}
+
+.letter-time {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
+
+/* 分页控件 */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pagination button {
+  width: auto;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 8px;
+  margin: 0;
+}
+
+.pagination button[disabled] {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pagination .page-info {
+  font-size: 14px;
+  color: var(--text-secondary);
+  min-width: 60px;
+  text-align: center;
+}

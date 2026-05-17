@@ -1,0 +1,38 @@
+/* ========== 信件列表页专用 ========== */
+.filter-btn-group {
+  display: flex;
+  gap: 10px;
+  margin: 10px 0 20px;
+}
+
+.filter-btn-group button {
+  flex: 1;
+}
+
+#letters-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+}
+
+.card-btn-row {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.card-btn-row button {
+  width: auto !important;
+  padding: 4px 10px !important;
+  font-size: 11px !important;
+  border-radius: 6px !important;
+}
+
+.card-del-btn-sm {
+  background: var(--btn-danger) !important;
+}
+
+.save-img-btn-sm, .save-pdf-btn-sm {
+  background: var(--btn-primary) !important;
+}
