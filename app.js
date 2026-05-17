@@ -1,5 +1,5 @@
 // ==============================================
-// 你的配置
+// 配置
 // ==============================================
 const SUPABASE_URL = "https://jihygwuxpgvukruiqvqg.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_IRdpgnmzz2W6AeEj9R-1ug_ZvAlJQLE";
@@ -9,9 +9,20 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let selectedImage = null;
 let filterType = "other";
 let allLetterData = [];
+let selectedMood = "";
 
 // ======================
-// 草稿自动保存 + 输入框自动长高
+// 工具函数
+// ======================
+function getCurrentPage() {
+  const path = location.pathname;
+  if (path.endsWith("letters.html")) return "letters";
+  if (path.endsWith("recycle.html")) return "recycle";
+  return "index";
+}
+
+// ======================
+// 草稿自动保存 + 自动长高
 // ======================
 const contentTxt = document.getElementById("content");
 if (contentTxt) {
@@ -20,43 +31,45 @@ if (contentTxt) {
 
   contentTxt.addEventListener("input", () => {
     localStorage.setItem("letterDraft", contentTxt.value);
-    contentTxt.style.height = "auto";
-    contentTxt.style.height = contentTxt.scrollHeight + "px";
   });
-
-  contentTxt.style.height = "auto";
-  contentTxt.style.height = contentTxt.scrollHeight + "px";
 }
 
 // ======================
-// 心情输入（保留）
+// 心情输入
 // ======================
-function updateMood() {
-  const val = document.getElementById("moodInput").value.trim();
-  window.selectedMood = val;
-  document.getElementById("moodShow").innerText = val ? `今日心情：${val}` : "";
-}
-
 const moodInput = document.getElementById("moodInput");
+const moodShow = document.getElementById("moodShow");
+
+function updateMood() {
+  const val = moodInput.value.trim();
+  selectedMood = val;
+  moodShow.innerText = val ? "今日心情：" + val : "";
+}
+
 if (moodInput) {
   moodInput.addEventListener("input", updateMood);
 }
 
 // ======================
-// 图片上传 —— 只显示文件名，不显示大图
+// 图片上传
 // ======================
 const imageInput = document.getElementById("imageInput");
-if (imageInput) {
-  imageInput.addEventListener("change", async (e) => {
+const imagePreview = document.getElementById("imagePreview");
+if (imageInput && imagePreview) {
+  document.querySelector(".upload-area button")?.addEventListener("click", () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener("change", (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    document.getElementById("imagePreview").innerText = "已选择：" + file.name;
+    imagePreview.innerText = "已选择：" + file.name;
     selectedImage = file;
   });
 }
 
 async function uploadImage(file) {
-  const fileName = `${Date.now()}-${file.name}`;
+  const fileName = Date.now() + "-" + file.name;
   const { data, error } = await client.storage
     .from("letter-images")
     .upload(fileName, file, { cacheControl: "3600" });
@@ -72,6 +85,11 @@ async function uploadImage(file) {
 // ======================
 // 信纸预览切换
 // ======================
+const paperSelect = document.getElementById("paperSelect");
+if (paperSelect) {
+  paperSelect.addEventListener("change", (e) => previewPaper(e.target.value));
+}
+
 function previewPaper(cls) {
   if (!contentTxt) return;
   contentTxt.className = "";
@@ -79,28 +97,32 @@ function previewPaper(cls) {
 }
 
 // ======================
-// 登录 / 注册
+// 登录 / 注册 / 登出
 // ======================
-window.onload = checkAuth;
+window.addEventListener("load", checkAuth);
 
 async function checkAuth() {
   const { data: { user } } = await client.auth.getUser();
   if (user) {
-    document.getElementById("auth-section").style.display = "none";
-    document.getElementById("letter-section").style.display = "block";
+    const authSection = document.getElementById("auth-section");
+    const letterSection = document.getElementById("letter-section");
+    if (authSection) authSection.style.display = "none";
+    if (letterSection) letterSection.style.display = "block";
 
-    if (location.pathname.includes("letters.html")) {
-      loadLettersFilter("other");
-    }
-    if (location.pathname.includes("recycle.html")) {
-      loadRecycle();
-    }
+    const page = getCurrentPage();
+    if (page === "letters") loadLettersFilter("other");
+    if (page === "recycle") loadRecycle();
   }
 }
 
 async function register() {
-  const email = document.getElementById("email").value;
+  const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
+
+  if (!email) return alert("请输入邮箱");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("邮箱格式不正确");
+  if (password.length < 6) return alert("密码至少 6 位");
+
   const { error } = await client.auth.signUp({ email, password });
   if (error) alert(error.message);
   else alert("注册成功！请登录");
@@ -109,10 +131,27 @@ async function register() {
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
+  if (!email || !password) return alert("请输入邮箱和密码");
+
   const { error } = await client.auth.signInWithPassword({ email, password });
   if (error) alert(error.message);
   else location.reload();
 }
+
+async function logout() {
+  await client.auth.signOut();
+  location.reload();
+}
+
+// ======================
+// 按钮事件绑定
+// ======================
+document.getElementById("btn-login")?.addEventListener("click", login);
+document.getElementById("btn-register")?.addEventListener("click", register);
+document.getElementById("btn-logout")?.addEventListener("click", logout);
+document.getElementById("btn-send")?.addEventListener("click", sendLetter);
+document.getElementById("btn-filter-me")?.addEventListener("click", () => loadLettersFilter("me"));
+document.getElementById("btn-filter-other")?.addEventListener("click", () => loadLettersFilter("other"));
 
 // ======================
 // 发送信件
@@ -125,38 +164,40 @@ async function sendLetter() {
   if (selectedImage) {
     const imageUrl = await uploadImage(selectedImage);
     if (!imageUrl) return;
-    finalContent = content ? `${content}\n![img](${imageUrl})` : `![img](${imageUrl})`;
+    finalContent = content ? content + "\n![img](" + imageUrl + ")" : "![img](" + imageUrl + ")";
     selectedImage = null;
-    document.getElementById("imagePreview").innerText = "";
-    document.getElementById("imageInput").value = "";
+    imagePreview.innerText = "";
+    imageInput.value = "";
   }
 
-  const mood = window.selectedMood || "";
-  const finalContentWithMood = mood
-    ? `【今日心情：${mood}】\n${finalContent}`
+  finalContent = selectedMood
+    ? "【今日心情：" + selectedMood + "】\n" + finalContent
     : finalContent;
 
   const paper = document.getElementById("paperSelect")?.value || "paper-white";
 
   const { data: { user } } = await client.auth.getUser();
-  await client.from("letters").insert([{
+  if (!user) return alert("请先登录");
+
+  const { error } = await client.from("letters").insert([{
     sender: user.email,
-    content: finalContentWithMood,
+    content: finalContent,
     paper_style: paper,
     is_deleted: false
   }]);
 
+  if (error) return alert("发送失败：" + error.message);
+
   localStorage.removeItem("letterDraft");
-  window.selectedMood = "";
-  document.getElementById("moodInput").value = "";
-  document.getElementById("moodShow").innerText = "";
+  selectedMood = "";
+  moodInput.value = "";
+  moodShow.innerText = "";
   document.getElementById("content").value = "";
-  contentTxt.style.height = "120px";
   alert("发送成功！");
 }
 
 // ======================
-// 信件列表 —— 三个按钮同一行
+// 信件列表
 // ======================
 async function loadLettersFilter(type) {
   filterType = type;
@@ -182,42 +223,50 @@ async function loadLetters() {
   list.innerHTML = "";
 
   data.forEach(letter => {
-    let preview = letter.content.replace(/!\[img].*?]/g, "[图片]").slice(0, 30) + "...";
+    let preview = letter.content.replace(/!\[img]\(.*?\)/g, "[图片]").slice(0, 30) + "...";
     const paper = letter.paper_style || "paper-white";
 
     const card = document.createElement("div");
-    card.className = `letter-card ${paper}`;
-    
-    // 👉 三个按钮在同一行（存长图 + 存PDF + 删除）
+    card.className = "letter-card " + paper;
+
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
       <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
       <div class="card-btn-row">
-        <button class="save-img-btn-sm" onclick="saveFullLetterAsImg(${letter.id})">存长图</button>
-        <button class="save-pdf-btn-sm" onclick="saveFullLetterAsPdf(${letter.id})">存PDF</button>
-        <button class="card-del-btn-sm" onclick="del(${letter.id})">删除</button>
+        <button class="save-img-btn-sm" data-id="${letter.id}">存长图</button>
+        <button class="save-pdf-btn-sm" data-id="${letter.id}">存PDF</button>
+        <button class="card-del-btn-sm" data-id="${letter.id}">删除</button>
       </div>
     `;
 
-    card.querySelector(".letter-preview").onclick = () => openFullLetter(letter);
+    card.querySelector(".letter-preview").addEventListener("click", () => openFullLetter(letter));
+    card.querySelector(".save-img-btn-sm").addEventListener("click", () => saveFullLetterAsImg(letter.id));
+    card.querySelector(".save-pdf-btn-sm").addEventListener("click", () => saveFullLetterAsPdf(letter.id));
+    card.querySelector(".card-del-btn-sm").addEventListener("click", () => del(letter.id));
+
     list.appendChild(card);
   });
 }
 
+// ======================
 // 打开信件弹窗
+// ======================
 function openFullLetter(letter) {
   const modal = document.createElement("div");
   modal.className = "letter-modal";
   modal.innerHTML = `
-    <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+    <button class="close-btn">×</button>
     <div class="modal-content ${letter.paper_style || 'paper-white'}">
       ${letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">')}
     </div>
   `;
+  modal.querySelector(".close-btn").addEventListener("click", () => modal.remove());
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) modal.remove();
+  });
   document.body.appendChild(modal);
 }
 
-// 根据id取完整信件
 function getFullLetterById(id) {
   return allLetterData.find(item => item.id === id);
 }
@@ -230,7 +279,7 @@ async function saveFullLetterAsImg(id) {
         alert("请先引入 html2canvas 库！");
         return;
     }
-    
+
     const letter = getFullLetterById(id);
     if (!letter) {
         alert("未找到信件数据");
@@ -244,40 +293,20 @@ async function saveFullLetterAsImg(id) {
 
     try {
         const tempDiv = document.createElement("div");
-        tempDiv.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 500px;
-            max-width: 90vw;
-            z-index: -9999;
-            opacity: 0;
-            pointer-events: none;
-        `;
-        
+        tempDiv.style.cssText = 'position: fixed; top: 0; left: 0; width: 500px; max-width: 90vw; z-index: -9999; opacity: 0; pointer-events: none;';
+
         const contentDiv = document.createElement("div");
-        contentDiv.className = `modal-content ${letter.paper_style || 'paper-white'}`;
-        contentDiv.style.cssText = `
-            padding: 40px 35px;
-            font-size: 16px;
-            line-height: 1.8;
-            white-space: pre-wrap;
-            word-break: break-word;
-            height: auto;
-            overflow: visible;
-            max-height: none;
-        `;
-        
+        contentDiv.className = "modal-content " + (letter.paper_style || "paper-white");
+        contentDiv.style.cssText = 'padding: 40px 35px; font-size: 16px; line-height: 1.8; white-space: pre-wrap; word-break: break-word; height: auto; overflow: visible; max-height: none;';
+
         let htmlContent = letter.content;
-        htmlContent = htmlContent.replace(/!\[img]\((.*?)\)/g, (match, url) => {
-            return `<img src="${url}" style="max-width:100%; border-radius:12px; margin:16px 0; display:block;" crossorigin="anonymous">`;
-        });
+        htmlContent = htmlContent.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%; border-radius:12px; margin:16px 0; display:block;" crossorigin="anonymous">');
         htmlContent = htmlContent.replace(/\n/g, '<br>');
         contentDiv.innerHTML = htmlContent;
-        
+
         tempDiv.appendChild(contentDiv);
         document.body.appendChild(tempDiv);
-        
+
         const images = contentDiv.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
@@ -286,9 +315,9 @@ async function saveFullLetterAsImg(id) {
                 img.onerror = () => resolve();
             });
         }));
-        
+
         await new Promise(resolve => setTimeout(resolve, 300));
-        
+
         const canvas = await html2canvas(contentDiv, {
             scale: 2.5,
             useCORS: true,
@@ -296,18 +325,22 @@ async function saveFullLetterAsImg(id) {
             logging: false,
             allowTaint: false
         });
-        
+
         const now = new Date();
-        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-        
+        const timestamp = now.getFullYear()
+          + String(now.getMonth() + 1).padStart(2, '0')
+          + String(now.getDate()).padStart(2, '0') + "_"
+          + String(now.getHours()).padStart(2, '0')
+          + String(now.getMinutes()).padStart(2, '0');
+
         const link = document.createElement("a");
-        link.download = `信件_${timestamp}.png`;
+        link.download = "信件_" + timestamp + ".png";
         link.href = canvas.toDataURL("image/png");
         link.click();
-        
+
         alert("已保存成功！");
         document.body.removeChild(tempDiv);
-        
+
     } catch (error) {
         console.error('保存失败:', error);
         alert("保存失败：" + error.message);
@@ -324,62 +357,66 @@ async function saveFullLetterAsPdf(id) {
         alert("请先引入依赖库！");
         return;
     }
-    
+
     const { jsPDF } = window.jspdf;
     const letter = getFullLetterById(id);
     if (!letter) return;
-    
+
     const loadingMsg = document.createElement('div');
     loadingMsg.textContent = '正在生成PDF，请稍候...';
     loadingMsg.style.cssText = 'position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(0,0,0,0.8); color:white; padding:12px 24px; border-radius:40px; z-index:10000;';
     document.body.appendChild(loadingMsg);
-    
+
     try {
         const tempDiv = document.createElement("div");
         tempDiv.style.cssText = 'position:fixed; top:0; left:0; width:500px; max-width:90vw; z-index:-9999; opacity:0; pointer-events:none;';
-        
+
         const contentDiv = document.createElement("div");
-        contentDiv.className = `modal-content ${letter.paper_style || 'paper-white'}`;
+        contentDiv.className = "modal-content " + (letter.paper_style || "paper-white");
         contentDiv.style.cssText = 'padding:40px 35px; font-size:16px; line-height:1.8; white-space:pre-wrap; word-break:break-word; height:auto; overflow:visible; max-height:none;';
-        
+
         let htmlContent = letter.content;
         htmlContent = htmlContent.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%; border-radius:12px; margin:16px 0; display:block;" crossorigin="anonymous">');
         htmlContent = htmlContent.replace(/\n/g, '<br>');
         contentDiv.innerHTML = htmlContent;
-        
+
         tempDiv.appendChild(contentDiv);
         document.body.appendChild(tempDiv);
-        
+
         const images = contentDiv.querySelectorAll('img');
         await Promise.all(Array.from(images).map(img => {
             if (img.complete) return Promise.resolve();
             return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
         }));
-        
+
         await new Promise(resolve => setTimeout(resolve, 300));
-        
+
         const canvas = await html2canvas(contentDiv, {
             scale: 2.5,
             useCORS: true,
             backgroundColor: null,
             logging: false
         });
-        
+
         const imgData = canvas.toDataURL("image/jpeg", 1.0);
         const pdf = new jsPDF({
             orientation: canvas.height > canvas.width ? "portrait" : "landscape",
             unit: "px",
             format: [canvas.width, canvas.height]
         });
-        
+
         pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
-        
+
         const now = new Date();
-        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-        
-        pdf.save(`信件_${timestamp}.pdf`);
+        const timestamp = now.getFullYear()
+          + String(now.getMonth() + 1).padStart(2, '0')
+          + String(now.getDate()).padStart(2, '0') + "_"
+          + String(now.getHours()).padStart(2, '0')
+          + String(now.getMinutes()).padStart(2, '0');
+
+        pdf.save("信件_" + timestamp + ".pdf");
         alert("PDF保存成功！");
-        
+
         document.body.removeChild(tempDiv);
     } catch (error) {
         console.error('PDF生成失败:', error);
@@ -412,21 +449,23 @@ async function loadRecycle() {
   list.innerHTML = "";
 
   data.forEach(letter => {
-    let preview = letter.content.replace(/!\[img].*?]/g, "[图片]").slice(0, 30) + "...";
+    let preview = letter.content.replace(/!\[img]\(.*?\)/g, "[图片]").slice(0, 30) + "...";
     const paper = letter.paper_style || "paper-white";
 
     const card = document.createElement("div");
-    card.className = `letter-card ${paper}`;
+    card.className = "letter-card " + paper;
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
       <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
       <div class="card-btn-group">
-        <button class="btn-restore" onclick="recoverLetter(${letter.id})">恢复</button>
-        <button class="btn-delete-full" onclick="hardDelete(${letter.id})">彻底删除</button>
+        <button class="btn-restore" data-id="${letter.id}">恢复</button>
+        <button class="btn-delete-full" data-id="${letter.id}">彻底删除</button>
       </div>
     `;
 
-    card.querySelector(".letter-preview").onclick = () => openFullLetter(letter);
+    card.querySelector(".letter-preview").addEventListener("click", () => openFullLetter(letter));
+    card.querySelector(".btn-restore").addEventListener("click", () => recoverLetter(letter.id));
+    card.querySelector(".btn-delete-full").addEventListener("click", () => hardDelete(letter.id));
     list.appendChild(card);
   });
 }

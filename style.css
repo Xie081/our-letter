@@ -1,47 +1,7 @@
 /* ========== index.html 写信页专用 ========== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-  font-family: "SimSun", serif;
-}
-
-html, body {
-  width: 100%;
-  min-height: 100vh;
-  background: #f0eadd;
-  padding: 16px;
-  color: #33261c;
-}
-
-h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
-  font-weight: normal;
-}
-
-input, select {
-  width: 100%;
-  padding: 12px 16px;
-  margin: 8px 0;
-  border-radius: 12px;
-  border: 1px solid #ddd;
-  background: #fff;
-  font-size: 16px;
-  outline: none;
-  font-family: "SimSun", serif;
-}
-
-#moodShow {
-  font-size: 14px;
-  color: #666;
-  margin: 8px 0;
-  font-family: "KaiTi", serif;
-}
-
 textarea {
   width: 100%;
-  min-height: 300px;
+  height: 420px;
   padding: 20px;
   margin: 10px 0;
   border-radius: 16px;
@@ -49,23 +9,17 @@ textarea {
   font-size: 17px;
   line-height: 1.8;
   resize: none;
+  overflow-y: auto;
   background-size: cover;
   background-position: center;
   color: #222;
-  font-family: "SimSun", serif;
 }
 
-button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  background: #33261c;
-  color: #fff;
-  font-size: 16px;
-  font-family: "SimSun", serif;
-  margin: 6px 0;
-  cursor: pointer;
+#moodShow {
+  font-size: 14px;
+  color: #666;
+  margin: 8px 0;
+  font-family: "KaiTi", serif;
 }
 
 .upload-area button {
@@ -77,10 +31,3 @@ button {
   color: #555;
   padding: 6px 0;
 }
-
-.paper-white { background:#fff; }
-.paper-blue { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png"); }
-.paper-green { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png"); }
-.paper-red { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png"); }
-.paper-whiteimg { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png"); }
-.paper-yellow { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png"); }

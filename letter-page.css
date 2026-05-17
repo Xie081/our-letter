@@ -1,40 +1,10 @@
-/* ========== 信件列表页专用========== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-html, body {
-  background: #f0eadd;
-  padding: 16px;
-  color: #33261c;
-}
-
-h2 {
-  font-size: 28px;
-  margin-bottom: 20px;
-  font-weight: normal;
-}
-
-button {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 12px;
-  background: #33261c;
-  color: #fff;
-  font-size: 16px;
-  margin: 6px 0;
-  cursor: pointer;
-  font-family: inherit;
-}
-
+/* ========== 信件列表页专用 ========== */
 .filter-btn-group {
   display: flex;
   gap: 10px;
   margin: 10px 0 20px;
 }
+
 .filter-btn-group button {
   flex: 1;
 }
@@ -44,41 +14,6 @@ button {
   flex-direction: column;
   gap: 14px;
   margin-top: 10px;
-}
-
-.letter-card {
-  border-radius: 16px;
-  padding: 18px;
-  min-height: 120px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  background-size: cover;
-  background-position: center;
-  cursor: pointer;
-  position: relative;
-}
-
-.letter-preview {
-  font-family: "SimSun", serif;
-  font-size: 15px;
-  line-height: 1.6;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  margin-bottom: 8px;
-}
-
-.letter-preview .mood-tag {
-  font-family: "KaiTi", "STKaiti", serif;
-}
-
-.letter-time {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-bottom: 12px;
-  font-family: inherit;
 }
 
 .card-btn-row {
@@ -92,71 +27,12 @@ button {
   padding: 4px 10px !important;
   font-size: 11px !important;
   border-radius: 6px !important;
-  font-family: inherit;
 }
 
 .card-del-btn-sm {
   background: #b86b6b !important;
 }
+
 .save-img-btn-sm, .save-pdf-btn-sm {
   background: #33261c !important;
 }
-
-/* 👉 弹窗内容：缩小上下边距 */
-.modal-content {
-  max-width: 500px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 20px 20px; /* 原来 30px，现在改成上下20px、左右20px */
-  border-radius: 20px;
-  font-size: 16px;
-  line-height: 1.8;
-  white-space: pre-wrap;
-  background-size: cover;
-  background-position: center;
-  background-repeat: repeat-y;
-  font-family: "SimSun", serif;
-}
-
-.modal-content .mood-tag {
-  font-family: "KaiTi", "STKaiti", serif;
-}
-
-.letter-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.25);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 999;
-  padding: 20px;
-}
-
-/* 👉 关闭按钮保持醒目样式 */
-.close-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: #b86b6b;
-  border: none;
-  font-size: 22px;
-  color: white;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-  font-family: inherit;
-}
-
-/* 信纸背景 */
-.paper-white { background:#fff; }
-.paper-blue { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/blue.png"); }
-.paper-green { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/green.png"); }
-.paper-red { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/red.png"); }
-.paper-whiteimg { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/white.png"); }
-.paper-yellow { background-image: url("https://jihygwuxpgvukruiqvqg.supabase.co/storage/v1/object/public/letter-images/paper/yellow.png"); }
