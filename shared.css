@@ -95,6 +95,15 @@ button {
 /* 暗色模式下的信纸覆盖 */
 body.dark-mode .paper-white { background: #2a2a40; }
 
+/* 有背景图的信纸在暗色模式下保持深色文字 */
+body.dark-mode .paper-blue,
+body.dark-mode .paper-green,
+body.dark-mode .paper-red,
+body.dark-mode .paper-whiteimg,
+body.dark-mode .paper-yellow {
+  color: #33261c;
+}
+
 /* 模态框共用 */
 .letter-modal {
   position: fixed;
