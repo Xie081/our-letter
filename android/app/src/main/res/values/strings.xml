@@ -1,7 +1,0 @@
-<?xml version='1.0' encoding='utf-8'?>
-<resources>
-    <string name="app_name">写一封信</string>
-    <string name="title_activity_main">写一封信</string>
-    <string name="package_name">com.ourletter.app</string>
-    <string name="custom_url_scheme">com.ourletter.app</string>
-</resources>

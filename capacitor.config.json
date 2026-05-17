@@ -1,9 +1,0 @@
-{
-  "appId": "com.ourletter.app",
-  "appName": "写一封信",
-  "webDir": "www",
-  "bundledWebRuntime": false,
-  "server": {
-    "androidScheme": "https"
-  }
-}
