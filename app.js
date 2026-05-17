@@ -10,6 +10,11 @@ let selectedImages = [];
 let filterType = "other";
 let allLetterData = [];
 let selectedMood = "";
+const PAGE_SIZE = 5;
+let lettersPage = 1;
+let lettersTotal = 0;
+let recyclePage = 1;
+let recycleTotal = 0;
 
 // ======================
 // 工具函数
@@ -141,8 +146,8 @@ async function checkAuth() {
     if (letterSection) letterSection.style.display = "block";
 
     const page = getCurrentPage();
-    if (page === "letters") loadLettersFilter("other");
-    if (page === "recycle") loadRecycle();
+    if (page === "letters") { lettersPage = 1; loadLettersFilter("other"); }
+    if (page === "recycle") { recyclePage = 1; loadRecycle(); }
   }
 }
 
@@ -231,13 +236,14 @@ async function sendLetter() {
 // ======================
 async function loadLettersFilter(type) {
   filterType = type;
+  lettersPage = 1;
   loadLetters();
 }
 
 async function loadLetters() {
   const { data: { user } } = await client.auth.getUser();
   let query = client.from("letters")
-    .select("*")
+    .select("*", { count: "exact" })
     .eq("is_deleted", false)
     .order("created_at", { ascending: false });
 
@@ -247,8 +253,19 @@ async function loadLetters() {
     query = query.neq("sender", user.email);
   }
 
-  const { data } = await query;
+  const start = (lettersPage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE - 1;
+  const { data, count } = await query.range(start, end);
+  lettersTotal = count || 0;
   allLetterData = data;
+
+  // 如果当前页没数据了，回退到上一页
+  if (data.length === 0 && lettersTotal > 0 && lettersPage > 1) {
+    lettersPage--;
+    loadLetters();
+    return;
+  }
+
   const list = document.getElementById("letters-list");
   list.innerHTML = "";
 
@@ -276,6 +293,32 @@ async function loadLetters() {
 
     list.appendChild(card);
   });
+
+  // 分页控件
+  renderLettersPagination();
+}
+
+function renderLettersPagination() {
+  const list = document.getElementById("letters-list");
+  const totalPages = Math.ceil(lettersTotal / PAGE_SIZE);
+  if (totalPages <= 1) return;
+
+  const nav = document.createElement("div");
+  nav.className = "pagination";
+  nav.innerHTML = `
+    <button class="page-prev" ${lettersPage <= 1 ? "disabled" : ""}>上一页</button>
+    <span class="page-info">${lettersPage} / ${totalPages}</span>
+    <button class="page-next" ${lettersPage >= totalPages ? "disabled" : ""}>下一页</button>
+  `;
+
+  nav.querySelector(".page-prev").addEventListener("click", () => {
+    if (lettersPage > 1) { lettersPage--; loadLetters(); }
+  });
+  nav.querySelector(".page-next").addEventListener("click", () => {
+    if (lettersPage < totalPages) { lettersPage++; loadLetters(); }
+  });
+
+  list.after(nav);
 }
 
 // ======================
@@ -479,10 +522,22 @@ async function del(id) {
 // ======================
 async function loadRecycle() {
   const { data: { user } } = await client.auth.getUser();
-  const { data } = await client.from("letters")
-    .select("*")
+  const start = (recyclePage - 1) * PAGE_SIZE;
+  const end = start + PAGE_SIZE - 1;
+  const { data, count } = await client.from("letters")
+    .select("*", { count: "exact" })
     .eq("is_deleted", true)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .range(start, end);
+
+  recycleTotal = count || 0;
+
+  // 如果当前页没数据了，回退到上一页
+  if (data.length === 0 && recycleTotal > 0 && recyclePage > 1) {
+    recyclePage--;
+    loadRecycle();
+    return;
+  }
 
   const list = document.getElementById("recycle-list");
   list.innerHTML = "";
@@ -507,6 +562,31 @@ async function loadRecycle() {
     card.querySelector(".btn-delete-full").addEventListener("click", () => hardDelete(letter.id));
     list.appendChild(card);
   });
+
+  renderRecyclePagination();
+}
+
+function renderRecyclePagination() {
+  const list = document.getElementById("recycle-list");
+  const totalPages = Math.ceil(recycleTotal / PAGE_SIZE);
+  if (totalPages <= 1) return;
+
+  const nav = document.createElement("div");
+  nav.className = "pagination";
+  nav.innerHTML = `
+    <button class="page-prev" ${recyclePage <= 1 ? "disabled" : ""}>上一页</button>
+    <span class="page-info">${recyclePage} / ${totalPages}</span>
+    <button class="page-next" ${recyclePage >= totalPages ? "disabled" : ""}>下一页</button>
+  `;
+
+  nav.querySelector(".page-prev").addEventListener("click", () => {
+    if (recyclePage > 1) { recyclePage--; loadRecycle(); }
+  });
+  nav.querySelector(".page-next").addEventListener("click", () => {
+    if (recyclePage < totalPages) { recyclePage++; loadRecycle(); }
+  });
+
+  list.after(nav);
 }
 
 async function recoverLetter(id) {
