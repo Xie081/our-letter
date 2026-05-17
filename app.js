@@ -6,7 +6,7 @@ const SUPABASE_ANON_KEY = "sb_publishable_IRdpgnmzz2W6AeEj9R-1ug_ZvAlJQLE";
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let selectedImage = null;
+let selectedImages = [];
 let filterType = "other";
 let allLetterData = [];
 let selectedMood = "";
@@ -61,10 +61,10 @@ if (imageInput && imagePreview) {
   });
 
   imageInput.addEventListener("change", (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    imagePreview.innerText = "已选择：" + file.name;
-    selectedImage = file;
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    selectedImages = files;
+    imagePreview.innerText = "已选择 " + files.length + " 张图片：" + files.map(f => f.name).join("、");
   });
 }
 
@@ -138,17 +138,11 @@ async function login() {
   else location.reload();
 }
 
-async function logout() {
-  await client.auth.signOut();
-  location.reload();
-}
-
 // ======================
 // 按钮事件绑定
 // ======================
 document.getElementById("btn-login")?.addEventListener("click", login);
 document.getElementById("btn-register")?.addEventListener("click", register);
-document.getElementById("btn-logout")?.addEventListener("click", logout);
 document.getElementById("btn-send")?.addEventListener("click", sendLetter);
 document.getElementById("btn-filter-me")?.addEventListener("click", () => loadLettersFilter("me"));
 document.getElementById("btn-filter-other")?.addEventListener("click", () => loadLettersFilter("other"));
@@ -158,14 +152,19 @@ document.getElementById("btn-filter-other")?.addEventListener("click", () => loa
 // ======================
 async function sendLetter() {
   const content = document.getElementById("content").value;
-  if (!content && !selectedImage) return alert("请输入内容或选择图片");
+  if (!content && selectedImages.length === 0) return alert("请输入内容或选择图片");
 
   let finalContent = content;
-  if (selectedImage) {
-    const imageUrl = await uploadImage(selectedImage);
-    if (!imageUrl) return;
-    finalContent = content ? content + "\n![img](" + imageUrl + ")" : "![img](" + imageUrl + ")";
-    selectedImage = null;
+  if (selectedImages.length > 0) {
+    const uploadTasks = selectedImages.map(file => uploadImage(file));
+    const imageUrls = await Promise.all(uploadTasks);
+    const validUrls = imageUrls.filter(url => url !== null);
+    if (validUrls.length === 0) return;
+    const imageMarkdown = validUrls.map(url => "![img](" + url + ")").join("\n");
+    finalContent = content
+      ? content + "\n" + imageMarkdown
+      : imageMarkdown;
+    selectedImages = [];
     imagePreview.innerText = "";
     imageInput.value = "";
   }

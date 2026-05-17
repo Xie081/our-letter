@@ -21,7 +21,6 @@
   <div style="display:flex; gap:8px; margin-bottom:10px;">
     <button onclick="window.location.href='letters.html'" style="flex:1;">查看所有信件</button>
     <button onclick="window.location.href='recycle.html'" style="flex:1;">进入回收站</button>
-    <button id="btn-logout" style="flex:0.5; background:#b86b6b;">登出</button>
   </div>
 
   <h2>写一封信</h2>
@@ -41,7 +40,7 @@
   </div>
 
   <div class="upload-area">
-    <input type="file" id="imageInput" accept="image/*" style="display:none;">
+    <input type="file" id="imageInput" accept="image/*" multiple style="display:none;">
     <button id="btn-upload-image">📷选择图片</button>
     <div id="imagePreview"></div>
   </div>
