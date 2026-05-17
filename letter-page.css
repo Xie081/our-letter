@@ -30,9 +30,9 @@
 }
 
 .card-del-btn-sm {
-  background: #b86b6b !important;
+  background: var(--btn-danger) !important;
 }
 
 .save-img-btn-sm, .save-pdf-btn-sm {
-  background: #33261c !important;
+  background: var(--btn-primary) !important;
 }

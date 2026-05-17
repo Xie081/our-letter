@@ -12,22 +12,23 @@ textarea {
   overflow-y: auto;
   background-size: cover;
   background-position: center;
-  color: #222;
+  color: var(--text-primary);
+  transition: color 0.3s;
 }
 
 #moodShow {
   font-size: 14px;
-  color: #666;
+  color: var(--text-secondary);
   margin: 8px 0;
   font-family: "KaiTi", serif;
 }
 
 .upload-area button {
-  background: #5c4b3b;
+  background: var(--btn-upload);
 }
 
 #imagePreview {
   font-size: 14px;
-  color: #555;
+  color: var(--text-preview);
   padding: 6px 0;
 }

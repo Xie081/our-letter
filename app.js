@@ -97,6 +97,37 @@ function previewPaper(cls) {
 }
 
 // ======================
+// 暗黑模式
+// ======================
+(function initDarkMode() {
+  const toggle = document.getElementById("darkToggle");
+  if (!toggle) return;
+
+  const isDark = localStorage.getItem("darkMode") === "true";
+  if (isDark) {
+    document.body.classList.add("dark-mode");
+    toggle.textContent = "☀️";
+  }
+
+  toggle.addEventListener("click", () => {
+    const nowDark = document.body.classList.toggle("dark-mode");
+    toggle.textContent = nowDark ? "☀️" : "🌙";
+    localStorage.setItem("darkMode", nowDark);
+  });
+})();
+
+// ======================
+// 图片大图查看
+// ======================
+function openImageViewer(src) {
+  const viewer = document.createElement("div");
+  viewer.className = "image-viewer";
+  viewer.innerHTML = '<img src="' + src + '" alt="大图">';
+  viewer.addEventListener("click", () => viewer.remove());
+  document.body.appendChild(viewer);
+}
+
+// ======================
 // 登录 / 注册 / 登出
 // ======================
 window.addEventListener("load", checkAuth);
@@ -264,6 +295,15 @@ function openFullLetter(letter) {
     if (e.target === modal) modal.remove();
   });
   document.body.appendChild(modal);
+
+  // 图片点击放大
+  modal.querySelectorAll(".modal-content img").forEach(img => {
+    img.style.cursor = "zoom-in";
+    img.addEventListener("click", (e) => {
+      e.stopPropagation();
+      openImageViewer(img.src);
+    });
+  });
 }
 
 function getFullLetterById(id) {
