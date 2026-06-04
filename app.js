@@ -374,13 +374,18 @@ function renderLettersPagination() {
 function openFullLetter(letter) {
   const modal = document.createElement("div");
   modal.className = "letter-modal";
-  modal.innerHTML = `
-    <button class="close-btn">×</button>
-    <div class="modal-content ${letter.paper_style || 'paper-white'}">
-      ${letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">')}
-    </div>
-  `;
-  modal.querySelector(".close-btn").addEventListener("click", () => modal.remove());
+
+  const closeBtn = document.createElement("button");
+  closeBtn.className = "close-btn";
+  closeBtn.textContent = "×";
+  closeBtn.addEventListener("click", () => modal.remove());
+
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "modal-content " + (letter.paper_style || "paper-white");
+  contentDiv.innerHTML = letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">');
+
+  modal.appendChild(closeBtn);
+  modal.appendChild(contentDiv);
   modal.addEventListener("click", (e) => {
     if (e.target === modal) modal.remove();
   });
