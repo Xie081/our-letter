@@ -385,11 +385,16 @@ function openFullLetter(letter) {
 
   let htmlContent = letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">');
   const firstNewline = htmlContent.indexOf('\n');
-  // 心情行不缩进，正文每段缩进 2em
+  // 心情行不缩进，正文每段独立成块、各自首行缩进 2em
   if (firstNewline > 0) {
     const moodLine = htmlContent.substring(0, firstNewline);
     const bodyText = htmlContent.substring(firstNewline + 1);
-    htmlContent = '<div style="text-indent:0;">' + moodLine + '</div>\n<div style="text-indent:2em;white-space:pre-wrap;">' + bodyText + '</div>';
+    const bodyBlocks = bodyText.split('\n').map(line =>
+      line === ''
+        ? '<br>'
+        : '<div style="text-indent:2em;white-space:pre-wrap;">' + line + '</div>'
+    ).join('\n');
+    htmlContent = '<div style="text-indent:0;">' + moodLine + '</div>\n' + bodyBlocks;
   } else {
     htmlContent = '<div style="text-indent:2em;white-space:pre-wrap;">' + htmlContent + '</div>';
   }
