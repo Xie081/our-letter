@@ -135,19 +135,37 @@ function openImageViewer(src) {
 // ======================
 // 登录 / 注册 / 登出
 // ======================
-window.addEventListener("load", checkAuth);
+window.addEventListener("load", () => {
+  checkAuth();
+  checkRecoveryFlow();
+});
 
 async function checkAuth() {
   const { data: { user } } = await client.auth.getUser();
   if (user) {
-    const authSection = document.getElementById("auth-section");
-    const letterSection = document.getElementById("letter-section");
-    if (authSection) authSection.style.display = "none";
-    if (letterSection) letterSection.style.display = "block";
-
+    showLetterSection();
     const page = getCurrentPage();
     if (page === "letters") { lettersPage = 1; loadLettersFilter("other"); }
     if (page === "recycle") { recyclePage = 1; loadRecycle(); }
+  }
+}
+
+function showLetterSection() {
+  const authSection = document.getElementById("auth-section");
+  const letterSection = document.getElementById("letter-section");
+  if (authSection) authSection.style.display = "none";
+  if (letterSection) letterSection.style.display = "block";
+}
+
+// 检测是否从重置密码邮件链接跳转回来
+async function checkRecoveryFlow() {
+  const hash = window.location.hash;
+  if (!hash.includes("type=recovery")) return;
+
+  // Supabase SDK 会自动从 hash 中解析 token 并设置 session
+  const { data: { user } } = await client.auth.getUser();
+  if (user) {
+    document.getElementById("reset-pwd-section").style.display = "block";
   }
 }
 
@@ -174,11 +192,37 @@ async function login() {
   else location.reload();
 }
 
+async function forgotPassword() {
+  const email = document.getElementById("email").value.trim();
+  if (!email) return alert("请先输入邮箱地址");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("邮箱格式不正确");
+
+  const { error } = await client.auth.resetPasswordForEmail(email, {
+    redirectTo: location.origin + location.pathname,
+  });
+  if (error) alert(error.message);
+  else alert("重置密码邮件已发送，请查收邮箱并点击邮件中的链接。");
+}
+
+async function resetPassword() {
+  const newPassword = document.getElementById("new-password").value;
+  if (newPassword.length < 6) return alert("新密码至少 6 位");
+
+  const { error } = await client.auth.updateUser({ password: newPassword });
+  if (error) alert(error.message);
+  else {
+    alert("密码重置成功！请用新密码登录。");
+    location.reload();
+  }
+}
+
 // ======================
 // 按钮事件绑定
 // ======================
 document.getElementById("btn-login")?.addEventListener("click", login);
 document.getElementById("btn-register")?.addEventListener("click", register);
+document.getElementById("btn-forgot")?.addEventListener("click", forgotPassword);
+document.getElementById("btn-reset-pwd")?.addEventListener("click", resetPassword);
 document.getElementById("btn-send")?.addEventListener("click", sendLetter);
 document.getElementById("btn-filter-me")?.addEventListener("click", () => loadLettersFilter("me"));
 document.getElementById("btn-filter-other")?.addEventListener("click", () => loadLettersFilter("other"));

@@ -261,3 +261,14 @@ body.dark-mode .paper-yellow {
   min-width: 60px;
   text-align: center;
 }
+
+/* 链接风格按钮 */
+.btn-link {
+  width: auto !important;
+  background: transparent !important;
+  color: var(--text-secondary) !important;
+  padding: 6px 4px !important;
+  font-size: 14px !important;
+  text-decoration: underline;
+  margin: 2px 0 !important;
+}
