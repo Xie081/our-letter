@@ -48,7 +48,7 @@ const moodShow = document.getElementById("moodShow");
 function updateMood() {
   const val = moodInput.value.trim();
   selectedMood = val;
-  moodShow.innerText = val ? "今日心情：" + val : "";
+  moodShow.innerText = val ? "“" + val + "”" : "";
 }
 
 if (moodInput) {
@@ -250,7 +250,7 @@ async function sendLetter() {
   }
 
   finalContent = selectedMood
-    ? "【今日心情：" + selectedMood + "】\n" + finalContent
+    ? "“" + selectedMood + "”\n" + finalContent
     : finalContent;
 
   const paper = document.getElementById("paperSelect")?.value || "paper-white";
