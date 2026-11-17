@@ -608,8 +608,11 @@ function buildLetterCard(letter, myEmail, mode) {
   const isMine = letter.sender === myEmail;
   const paper = letter.paper_style || "paper-white";
   const previewText = letter.content.replace(/!\[img]\(.*?\)/g, "[图片]");
-  const firstImgMatch = letter.content.match(/!\[img]\((.*?)\)/);
-  const firstImg = firstImgMatch ? firstImgMatch[1] : "";
+  const imageUrls = [];
+  letter.content.replace(/!\[img]\((.*?)\)/g, (_, url) => {
+    imageUrls.push(url);
+    return "";
+  });
 
   const card = document.createElement("div");
   card.className = "letter-card " + paper;
@@ -634,14 +637,23 @@ function buildLetterCard(letter, myEmail, mode) {
 
   card.append(meta, previewEl);
 
-  if (firstImg) {
-    const thumb = document.createElement("img");
-    thumb.className = "card-thumb";
-    thumb.src = firstImg;
-    thumb.alt = "";
-    thumb.loading = "lazy";
-    thumb.addEventListener("click", () => openFullLetter(letter));
-    card.appendChild(thumb);
+  // 图片以并排缩略图显示，点击直接看大图（和弹窗一致）
+  if (imageUrls.length) {
+    const thumbs = document.createElement("div");
+    thumbs.className = "card-thumbs";
+    imageUrls.forEach(src => {
+      const thumb = document.createElement("img");
+      thumb.className = "card-thumb";
+      thumb.src = src;
+      thumb.alt = "";
+      thumb.loading = "lazy";
+      thumb.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openImageViewer(src);
+      });
+      thumbs.appendChild(thumb);
+    });
+    card.appendChild(thumbs);
   }
 
   const btnRow = document.createElement("div");

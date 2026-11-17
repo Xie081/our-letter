@@ -605,13 +605,27 @@ body.dark-mode .badge-in {
   color: var(--text-primary);
 }
 
+.card-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .card-thumb {
-  width: 100%;
-  max-height: 140px;
+  width: 72px;
+  height: 72px;
   object-fit: cover;
   border-radius: 10px;
-  margin-top: 8px;
+  box-shadow: 0 2px 8px var(--card-shadow);
   cursor: zoom-in;
+  display: block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px var(--card-shadow);
 }
 
 /* ========== 弹窗内图片缩略图 ========== */
