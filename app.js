@@ -7,6 +7,8 @@ const SUPABASE_ANON_KEY = "sb_publishable_IRdpgnmzz2W6AeEj9R-1ug_ZvAlJQLE";
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let selectedImages = [];
+let imageObjectUrls = [];
+let selectedPaper = "paper-white";
 let filterType = "other";
 let allLetterData = [];
 const PAGE_SIZE = 5;
@@ -27,6 +29,109 @@ function getCurrentPage() {
   if (path.endsWith("letters.html")) return "letters";
   if (path.endsWith("recycle.html")) return "recycle";
   return "index";
+}
+
+// ======================
+// 通用 UI：轻提示 / 确认框 / 转义 / 空状态
+// ======================
+function showToast(message, type) {
+  let container = document.querySelector(".toast-container");
+  if (!container) {
+    container = document.createElement("div");
+    container.className = "toast-container";
+    document.body.appendChild(container);
+  }
+
+  const toast = document.createElement("div");
+  toast.className = "toast" + (type ? " toast-" + type : "");
+  toast.textContent = message;
+  container.appendChild(toast);
+
+  requestAnimationFrame(() => toast.classList.add("show"));
+  setTimeout(() => {
+    toast.classList.remove("show");
+    setTimeout(() => toast.remove(), 300);
+  }, 2600);
+}
+
+function showConfirm(message) {
+  return new Promise((resolve) => {
+    const overlay = document.createElement("div");
+    overlay.className = "confirm-overlay";
+
+    const box = document.createElement("div");
+    box.className = "confirm-box";
+
+    const text = document.createElement("p");
+    text.textContent = message;
+
+    const actions = document.createElement("div");
+    actions.className = "confirm-actions";
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.className = "confirm-cancel";
+    cancelBtn.textContent = "取消";
+
+    const okBtn = document.createElement("button");
+    okBtn.className = "confirm-ok";
+    okBtn.textContent = "确定";
+
+    const close = (result) => {
+      overlay.remove();
+      resolve(result);
+    };
+    cancelBtn.addEventListener("click", () => close(false));
+    okBtn.addEventListener("click", () => close(true));
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) close(false);
+    });
+
+    actions.append(cancelBtn, okBtn);
+    box.append(text, actions);
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+  });
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  }[c]));
+}
+
+function renderEmptyState(container, icon, text) {
+  const empty = document.createElement("div");
+  empty.className = "empty-state";
+
+  const iconEl = document.createElement("div");
+  iconEl.className = "empty-icon";
+  iconEl.textContent = icon;
+
+  const textEl = document.createElement("p");
+  textEl.textContent = text;
+
+  empty.append(iconEl, textEl);
+  container.appendChild(empty);
+}
+
+// 发送成功时的信纸飞走 + 火漆印章动画
+function playSendAnimation() {
+  const wrap = document.createElement("div");
+  wrap.className = "send-anim";
+  wrap.innerHTML = '<div class="send-paper"></div><div class="send-seal">♥</div><div class="send-done">已寄出</div>';
+  document.body.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 1700);
+}
+
+function updateBottomNav() {
+  const page = getCurrentPage();
+  document.querySelectorAll(".bottom-nav-item").forEach(item => {
+    item.classList.toggle("active", item.dataset.page === page);
+  });
 }
 
 // ======================
@@ -56,6 +161,45 @@ if (contentTxt) {
 // ======================
 const imageInput = document.getElementById("imageInput");
 const imagePreview = document.getElementById("imagePreview");
+
+function renderImagePreview() {
+  if (!imagePreview) return;
+
+  imageObjectUrls.forEach(url => URL.revokeObjectURL(url));
+  imageObjectUrls = [];
+  imagePreview.innerHTML = "";
+
+  selectedImages.forEach((file, index) => {
+    const url = URL.createObjectURL(file);
+    imageObjectUrls.push(url);
+
+    const item = document.createElement("div");
+    item.className = "thumb";
+
+    const img = document.createElement("img");
+    img.src = url;
+    img.alt = file.name;
+
+    const removeBtn = document.createElement("button");
+    removeBtn.type = "button";
+    removeBtn.className = "thumb-remove";
+    removeBtn.textContent = "×";
+    removeBtn.addEventListener("click", () => {
+      selectedImages.splice(index, 1);
+      renderImagePreview();
+    });
+
+    item.append(img, removeBtn);
+    imagePreview.appendChild(item);
+  });
+}
+
+function clearSelectedImages() {
+  selectedImages = [];
+  renderImagePreview();
+  if (imageInput) imageInput.value = "";
+}
+
 if (imageInput && imagePreview) {
   document.querySelector(".upload-area button")?.addEventListener("click", () => {
     imageInput.click();
@@ -65,7 +209,7 @@ if (imageInput && imagePreview) {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
     selectedImages = files;
-    imagePreview.innerText = "已选择 " + files.length + " 张图片：" + files.map(f => f.name).join("、");
+    renderImagePreview();
   });
 }
 
@@ -76,7 +220,7 @@ async function uploadImage(file) {
     .upload(fileName, file, { cacheControl: "3600" });
 
   if (error) {
-    alert("上传失败：" + error.message);
+    showToast("上传失败：" + error.message, "error");
     return null;
   }
   const { data: { publicUrl } } = client.storage.from("letter-images").getPublicUrl(fileName);
@@ -86,15 +230,29 @@ async function uploadImage(file) {
 // ======================
 // 信纸预览切换
 // ======================
-const paperSelect = document.getElementById("paperSelect");
-if (paperSelect) {
-  paperSelect.addEventListener("change", (e) => previewPaper(e.target.value));
+const paperPicker = document.getElementById("paperPicker");
+
+function selectPaper(cls) {
+  selectedPaper = cls;
+  if (paperPicker) {
+    paperPicker.querySelectorAll(".paper-swatch").forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.paper === cls);
+    });
+  }
+  previewPaper(cls);
 }
 
 function previewPaper(cls) {
   if (!contentTxt) return;
   contentTxt.className = "";
   contentTxt.classList.add(cls);
+}
+
+if (paperPicker) {
+  paperPicker.querySelectorAll(".paper-swatch").forEach(btn => {
+    btn.addEventListener("click", () => selectPaper(btn.dataset.paper));
+  });
+  selectPaper(selectedPaper);
 }
 
 // ======================
@@ -104,16 +262,23 @@ function previewPaper(cls) {
   const toggle = document.getElementById("darkToggle");
   if (!toggle) return;
 
+  function syncThemeColor(isDark) {
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", isDark ? "#1a1a2e" : "#f0eadd");
+  }
+
   const isDark = localStorage.getItem("darkMode") === "true";
   if (isDark) {
     document.body.classList.add("dark-mode");
     toggle.textContent = "☀️";
   }
+  syncThemeColor(isDark);
 
   toggle.addEventListener("click", () => {
     const nowDark = document.body.classList.toggle("dark-mode");
     toggle.textContent = nowDark ? "☀️" : "🌙";
     localStorage.setItem("darkMode", nowDark);
+    syncThemeColor(nowDark);
   });
 })();
 
@@ -150,7 +315,9 @@ function applyRoom() {
   const authSection = document.getElementById("auth-section");
   const roomSection = document.getElementById("room-section");
   const letterSection = document.getElementById("letter-section");
+  const bottomNav = document.getElementById("bottom-nav");
   if (authSection) authSection.style.display = "none";
+  if (bottomNav) bottomNav.classList.toggle("is-visible", !!currentRoom);
   if (!roomSection || !letterSection) return;
 
   if (!currentRoom) {
@@ -180,7 +347,7 @@ function applyRoom() {
 function enterRoom() {
   const input = document.getElementById("roomCode");
   const code = (input ? input.value : "").trim();
-  if (!/^\d{4,20}$/.test(code)) return alert("请输入 4~20 位数字暗号");
+  if (!/^\d{4,20}$/.test(code)) return showToast("请输入 4~20 位数字暗号", "error");
 
   currentRoom = code;
   localStorage.setItem(ROOM_KEY, code);
@@ -188,16 +355,15 @@ function enterRoom() {
   applyRoom();
 }
 
-function switchRoom() {
-  if (!confirm("切换聊天室？本房间的草稿会保留，下次输入同一暗号还能继续写。")) return;
+async function switchRoom() {
+  const ok = await showConfirm("切换聊天室？本房间的草稿会保留，下次输入同一暗号还能继续写。");
+  if (!ok) return;
 
   currentRoom = "";
   localStorage.removeItem(ROOM_KEY);
 
   // 清掉写信念头的临时状态，避免带进另一个房间
-  selectedImages = [];
-  if (imagePreview) imagePreview.innerText = "";
-
+  clearSelectedImages();
   applyRoom();
 }
 
@@ -217,46 +383,46 @@ async function register() {
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
-  if (!email) return alert("请输入邮箱");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("邮箱格式不正确");
-  if (password.length < 6) return alert("密码至少 6 位");
+  if (!email) return showToast("请输入邮箱");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast("邮箱格式不正确", "error");
+  if (password.length < 6) return showToast("密码至少 6 位", "error");
 
   const { error } = await client.auth.signUp({ email, password });
-  if (error) alert(error.message);
-  else alert("注册成功！请登录");
+  if (error) showToast(error.message, "error");
+  else showToast("注册成功！请登录", "success");
 }
 
 async function login() {
   const email = document.getElementById("email").value;
   const password = document.getElementById("password").value;
-  if (!email || !password) return alert("请输入邮箱和密码");
+  if (!email || !password) return showToast("请输入邮箱和密码", "error");
 
   const { error } = await client.auth.signInWithPassword({ email, password });
-  if (error) alert(error.message);
+  if (error) showToast(error.message, "error");
   else location.reload();
 }
 
 async function forgotPassword() {
   const email = document.getElementById("email").value.trim();
-  if (!email) return alert("请先输入邮箱地址");
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return alert("邮箱格式不正确");
+  if (!email) return showToast("请先输入邮箱地址", "error");
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return showToast("邮箱格式不正确", "error");
 
   const { error } = await client.auth.resetPasswordForEmail(email, {
     redirectTo: location.origin + location.pathname,
   });
-  if (error) alert(error.message);
-  else alert("重置密码邮件已发送，请查收邮箱并点击邮件中的链接。");
+  if (error) showToast(error.message, "error");
+  else showToast("重置密码邮件已发送，请查收邮箱", "success");
 }
 
 async function resetPassword() {
   const newPassword = document.getElementById("new-password").value;
-  if (newPassword.length < 6) return alert("新密码至少 6 位");
+  if (newPassword.length < 6) return showToast("新密码至少 6 位", "error");
 
   const { error } = await client.auth.updateUser({ password: newPassword });
-  if (error) alert(error.message);
+  if (error) showToast(error.message, "error");
   else {
-    alert("密码重置成功！请用新密码登录。");
-    location.reload();
+    showToast("密码重置成功！请用新密码登录", "success");
+    setTimeout(() => location.reload(), 800);
   }
 }
 
@@ -275,48 +441,55 @@ document.getElementById("roomCode")?.addEventListener("keydown", (e) => {
 document.getElementById("btn-send")?.addEventListener("click", sendLetter);
 document.getElementById("btn-filter-me")?.addEventListener("click", () => loadLettersFilter("me"));
 document.getElementById("btn-filter-other")?.addEventListener("click", () => loadLettersFilter("other"));
+updateBottomNav();
 
 // ======================
 // 发送信件
 // ======================
 async function sendLetter() {
+  const btnSend = document.getElementById("btn-send");
   const content = document.getElementById("content").value;
-  if (!content && selectedImages.length === 0) return alert("请输入内容或选择图片");
+  if (!content && selectedImages.length === 0) return showToast("请输入内容或选择图片");
 
-  let finalContent = content;
-  if (selectedImages.length > 0) {
-    const uploadTasks = selectedImages.map(file => uploadImage(file));
-    const imageUrls = await Promise.all(uploadTasks);
-    const validUrls = imageUrls.filter(url => url !== null);
-    if (validUrls.length === 0) return;
-    const imageMarkdown = validUrls.map(url => "![img](" + url + ")").join("\n");
-    finalContent = content
-      ? content + "\n" + imageMarkdown
-      : imageMarkdown;
-    selectedImages = [];
-    imagePreview.innerText = "";
-    imageInput.value = "";
+  btnSend.disabled = true;
+  btnSend.textContent = "发送中…";
+
+  try {
+    let finalContent = content;
+    if (selectedImages.length > 0) {
+      const uploadTasks = selectedImages.map(file => uploadImage(file));
+      const imageUrls = await Promise.all(uploadTasks);
+      const validUrls = imageUrls.filter(url => url !== null);
+      if (validUrls.length === 0) return;
+      const imageMarkdown = validUrls.map(url => "![img](" + url + ")").join("\n");
+      finalContent = content
+        ? content + "\n" + imageMarkdown
+        : imageMarkdown;
+      clearSelectedImages();
+    }
+
+    const { data: { user } } = await client.auth.getUser();
+    if (!user) return showToast("请先登录", "error");
+    if (!currentRoom) return showToast("请先输入聊天室暗号", "error");
+
+    const { error } = await client.from("letters").insert([{
+      sender: user.email,
+      content: finalContent,
+      paper_style: selectedPaper,
+      room_code: currentRoom,
+      is_deleted: false
+    }]);
+
+    if (error) return showToast("发送失败：" + error.message, "error");
+
+    localStorage.removeItem(draftKey());
+    document.getElementById("content").value = "";
+    playSendAnimation();
+    showToast("信件已寄出", "success");
+  } finally {
+    btnSend.disabled = false;
+    btnSend.textContent = "发送信件";
   }
-
-  const paper = document.getElementById("paperSelect")?.value || "paper-white";
-
-  const { data: { user } } = await client.auth.getUser();
-  if (!user) return alert("请先登录");
-  if (!currentRoom) return alert("请先输入聊天室暗号");
-
-  const { error } = await client.from("letters").insert([{
-    sender: user.email,
-    content: finalContent,
-    paper_style: paper,
-    room_code: currentRoom,
-    is_deleted: false
-  }]);
-
-  if (error) return alert("发送失败：" + error.message);
-
-  localStorage.removeItem(draftKey());
-  document.getElementById("content").value = "";
-  alert("发送成功！");
 }
 
 // ======================
@@ -325,11 +498,19 @@ async function sendLetter() {
 async function loadLettersFilter(type) {
   filterType = type;
   lettersPage = 1;
+  updateFilterButtons();
   loadLetters();
+}
+
+function updateFilterButtons() {
+  document.getElementById("btn-filter-me")?.classList.toggle("active", filterType === "me");
+  document.getElementById("btn-filter-other")?.classList.toggle("active", filterType === "other");
 }
 
 async function loadLetters() {
   const { data: { user } } = await client.auth.getUser();
+  if (!user) return showToast("登录已过期，请重新登录", "error");
+
   let query = client.from("letters")
     .select("*", { count: "exact" })
     .eq("is_deleted", false)
@@ -358,33 +539,95 @@ async function loadLetters() {
   const list = document.getElementById("letters-list");
   list.innerHTML = "";
 
-  data.forEach(letter => {
-    let preview = letter.content.replace(/!\[img]\(.*?\)/g, "[图片]").slice(0, 30) + "...";
-    const paper = letter.paper_style || "paper-white";
-
-    const card = document.createElement("div");
-    card.className = "letter-card " + paper;
-
-    card.innerHTML = `
-      <div class="letter-preview">${preview}</div>
-      <div class="letter-time">${formatLetterDateTime(letter)}</div>
-      <div class="card-btn-row">
-        <button class="save-img-btn-sm" data-id="${letter.id}">存长图</button>
-        <button class="save-pdf-btn-sm" data-id="${letter.id}">存PDF</button>
-        <button class="card-del-btn-sm" data-id="${letter.id}">删除</button>
-      </div>
-    `;
-
-    card.querySelector(".letter-preview").addEventListener("click", () => openFullLetter(letter));
-    card.querySelector(".save-img-btn-sm").addEventListener("click", () => saveFullLetterAsImg(letter.id));
-    card.querySelector(".save-pdf-btn-sm").addEventListener("click", () => saveFullLetterAsPdf(letter.id));
-    card.querySelector(".card-del-btn-sm").addEventListener("click", () => del(letter.id));
-
-    list.appendChild(card);
-  });
+  if (lettersTotal === 0) {
+    renderEmptyState(list, "✉️", filterType === "me" ? "你还没有寄出过信" : "还没有收到信");
+  } else {
+    data.forEach(letter => {
+      list.appendChild(buildLetterCard(letter, user.email, "normal"));
+    });
+  }
 
   // 分页控件
   renderLettersPagination();
+}
+
+// 生成信件卡片（信箱和回收站共用）
+function buildLetterCard(letter, myEmail, mode) {
+  const isMine = letter.sender === myEmail;
+  const paper = letter.paper_style || "paper-white";
+  const previewText = letter.content.replace(/!\[img]\(.*?\)/g, "[图片]");
+  const firstImgMatch = letter.content.match(/!\[img]\((.*?)\)/);
+  const firstImg = firstImgMatch ? firstImgMatch[1] : "";
+
+  const card = document.createElement("div");
+  card.className = "letter-card " + paper;
+
+  const meta = document.createElement("div");
+  meta.className = "card-meta";
+
+  const badge = document.createElement("span");
+  badge.className = "letter-badge " + (isMine ? "badge-out" : "badge-in");
+  badge.textContent = isMine ? "我寄出" : "对方寄来";
+
+  const time = document.createElement("span");
+  time.className = "letter-time";
+  time.textContent = formatLetterDateTime(letter);
+
+  meta.append(badge, time);
+
+  const previewEl = document.createElement("div");
+  previewEl.className = "letter-preview";
+  previewEl.innerHTML = escapeHtml(previewText);
+  previewEl.addEventListener("click", () => openFullLetter(letter));
+
+  card.append(meta, previewEl);
+
+  if (firstImg) {
+    const thumb = document.createElement("img");
+    thumb.className = "card-thumb";
+    thumb.src = firstImg;
+    thumb.alt = "";
+    thumb.loading = "lazy";
+    thumb.addEventListener("click", () => openFullLetter(letter));
+    card.appendChild(thumb);
+  }
+
+  const btnRow = document.createElement("div");
+  btnRow.className = "card-btn-row";
+
+  if (mode === "recycle") {
+    const restoreBtn = document.createElement("button");
+    restoreBtn.className = "btn-restore";
+    restoreBtn.textContent = "恢复";
+    restoreBtn.addEventListener("click", () => recoverLetter(letter.id));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "btn-delete-full";
+    deleteBtn.textContent = "彻底删除";
+    deleteBtn.addEventListener("click", () => hardDelete(letter.id));
+
+    btnRow.append(restoreBtn, deleteBtn);
+  } else {
+    const imgBtn = document.createElement("button");
+    imgBtn.className = "save-img-btn-sm";
+    imgBtn.textContent = "存长图";
+    imgBtn.addEventListener("click", () => saveFullLetterAsImg(letter.id));
+
+    const pdfBtn = document.createElement("button");
+    pdfBtn.className = "save-pdf-btn-sm";
+    pdfBtn.textContent = "存PDF";
+    pdfBtn.addEventListener("click", () => saveFullLetterAsPdf(letter.id));
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "card-del-btn-sm";
+    delBtn.textContent = "删除";
+    delBtn.addEventListener("click", () => del(letter.id));
+
+    btnRow.append(imgBtn, pdfBtn, delBtn);
+  }
+
+  card.appendChild(btnRow);
+  return card;
 }
 
 function renderLettersPagination() {
@@ -419,11 +662,15 @@ function renderLettersPagination() {
 function openFullLetter(letter) {
   const modal = document.createElement("div");
   modal.className = "letter-modal";
+  const close = () => modal.remove();
 
   const closeBtn = document.createElement("button");
   closeBtn.className = "close-btn";
   closeBtn.textContent = "×";
-  closeBtn.addEventListener("click", () => modal.remove());
+  closeBtn.addEventListener("click", close);
+
+  const shell = document.createElement("div");
+  shell.className = "modal-shell";
 
   const contentDiv = document.createElement("div");
   contentDiv.className = "modal-content " + (letter.paper_style || "paper-white");
@@ -437,10 +684,50 @@ function openFullLetter(letter) {
   ).join('\n');
   contentDiv.innerHTML = htmlContent;
 
-  modal.appendChild(closeBtn);
-  modal.appendChild(contentDiv);
+  // 底部：发送时间 + 操作按钮
+  const footer = document.createElement("div");
+  footer.className = "modal-footer";
+
+  const timeEl = document.createElement("div");
+  timeEl.className = "modal-time";
+  timeEl.textContent = "写于 " + formatLetterDateTime(letter);
+  footer.appendChild(timeEl);
+
+  const actions = document.createElement("div");
+  actions.className = "modal-actions";
+
+  const addAction = (label, className, handler) => {
+    const btn = document.createElement("button");
+    btn.className = className;
+    btn.textContent = label;
+    btn.addEventListener("click", handler);
+    actions.appendChild(btn);
+  };
+
+  if (letter.is_deleted) {
+    addAction("恢复", "btn-success", async () => {
+      await recoverLetter(letter.id);
+      close();
+    });
+    addAction("彻底删除", "btn-danger", async () => {
+      if (await hardDelete(letter.id)) close();
+    });
+  } else {
+    if (getCurrentPage() === "letters") {
+      addAction("存长图", "", () => saveFullLetterAsImg(letter.id));
+      addAction("存PDF", "", () => saveFullLetterAsPdf(letter.id));
+    }
+    addAction("删除", "btn-danger", async () => {
+      if (await del(letter.id)) close();
+    });
+  }
+
+  footer.appendChild(actions);
+  shell.append(contentDiv, footer);
+  modal.append(closeBtn, shell);
+
   modal.addEventListener("click", (e) => {
-    if (e.target === modal) modal.remove();
+    if (e.target === modal) close();
   });
   document.body.appendChild(modal);
 
@@ -489,13 +776,13 @@ function formatLetterDateTime(letter) {
 // ======================
 async function saveFullLetterAsImg(id) {
     if (!window.html2canvas) {
-        alert("请先引入 html2canvas 库！");
+        showToast("请先引入 html2canvas 库！", "error");
         return;
     }
 
     const letter = getFullLetterById(id);
     if (!letter) {
-        alert("未找到信件数据");
+        showToast("未找到信件数据", "error");
         return;
     }
 
@@ -546,12 +833,12 @@ async function saveFullLetterAsImg(id) {
         link.href = canvas.toDataURL("image/png");
         link.click();
 
-        alert("已保存成功！");
+        showToast("已保存成功", "success");
         document.body.removeChild(tempDiv);
 
     } catch (error) {
         console.error('保存失败:', error);
-        alert("保存失败：" + error.message);
+        showToast("保存失败：" + error.message, "error");
     } finally {
         if (loadingMsg.parentNode) loadingMsg.parentNode.removeChild(loadingMsg);
     }
@@ -562,7 +849,7 @@ async function saveFullLetterAsImg(id) {
 // ======================
 async function saveFullLetterAsPdf(id) {
     if (!window.jspdf || !window.html2canvas) {
-        alert("请先引入依赖库！");
+        showToast("请先引入依赖库！", "error");
         return;
     }
 
@@ -618,12 +905,12 @@ async function saveFullLetterAsPdf(id) {
         const timestamp = formatLetterTimestamp(letter);
 
         pdf.save("信件_" + timestamp + ".pdf");
-        alert("PDF保存成功！");
+        showToast("PDF保存成功", "success");
 
         document.body.removeChild(tempDiv);
     } catch (error) {
         console.error('PDF生成失败:', error);
-        alert("生成失败：" + error.message);
+        showToast("生成失败：" + error.message, "error");
     } finally {
         if (loadingMsg.parentNode) loadingMsg.parentNode.removeChild(loadingMsg);
     }
@@ -633,9 +920,13 @@ async function saveFullLetterAsPdf(id) {
 // 删除到回收站
 // ======================
 async function del(id) {
-  if (!confirm("确定删除？可在回收站找回")) return;
+  const ok = await showConfirm("确定删除？可在回收站找回");
+  if (!ok) return false;
+
   await client.from("letters").update({ is_deleted: true }).eq("id", id).eq("room_code", currentRoom);
+  showToast("已移入回收站");
   loadLetters();
+  return true;
 }
 
 // ======================
@@ -643,6 +934,8 @@ async function del(id) {
 // ======================
 async function loadRecycle() {
   const { data: { user } } = await client.auth.getUser();
+  if (!user) return showToast("登录已过期，请重新登录", "error");
+
   const start = (recyclePage - 1) * PAGE_SIZE;
   const end = start + PAGE_SIZE - 1;
   const { data, count } = await client.from("letters")
@@ -664,26 +957,13 @@ async function loadRecycle() {
   const list = document.getElementById("recycle-list");
   list.innerHTML = "";
 
-  data.forEach(letter => {
-    let preview = letter.content.replace(/!\[img]\(.*?\)/g, "[图片]").slice(0, 30) + "...";
-    const paper = letter.paper_style || "paper-white";
-
-    const card = document.createElement("div");
-    card.className = "letter-card " + paper;
-    card.innerHTML = `
-      <div class="letter-preview">${preview}</div>
-      <div class="letter-time">${formatLetterDateTime(letter)}</div>
-      <div class="card-btn-group">
-        <button class="btn-restore" data-id="${letter.id}">恢复</button>
-        <button class="btn-delete-full" data-id="${letter.id}">彻底删除</button>
-      </div>
-    `;
-
-    card.querySelector(".letter-preview").addEventListener("click", () => openFullLetter(letter));
-    card.querySelector(".btn-restore").addEventListener("click", () => recoverLetter(letter.id));
-    card.querySelector(".btn-delete-full").addEventListener("click", () => hardDelete(letter.id));
-    list.appendChild(card);
-  });
+  if (recycleTotal === 0) {
+    renderEmptyState(list, "🗑️", "回收站是空的");
+  } else {
+    data.forEach(letter => {
+      list.appendChild(buildLetterCard(letter, user.email, "recycle"));
+    });
+  }
 
   renderRecyclePagination();
 }
@@ -714,12 +994,16 @@ function renderRecyclePagination() {
 
 async function recoverLetter(id) {
   await client.from("letters").update({ is_deleted: false }).eq("id", id).eq("room_code", currentRoom);
-  alert("已恢复！");
+  showToast("已恢复", "success");
   loadRecycle();
 }
 
 async function hardDelete(id) {
-  if (!confirm("确定永久删除？不可恢复！")) return;
+  const ok = await showConfirm("确定永久删除？不可恢复！");
+  if (!ok) return false;
+
   await client.from("letters").delete().eq("id", id).eq("room_code", currentRoom);
+  showToast("已彻底删除", "success");
   loadRecycle();
+  return true;
 }

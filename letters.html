@@ -2,8 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f0eadd">
 <title>所有信件</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="letter-page.css">
 </head>
@@ -20,6 +23,7 @@
 
 <div id="room-section" style="display:none;">
   <h2>输入暗号进入聊天室</h2>
+  <p class="subtitle">同一串数字，就是我们两个人的房间</p>
   <input type="text" id="roomCode" inputmode="numeric" maxlength="20" placeholder="输入你们的数字暗号">
   <button id="btn-enter-room">进入聊天室</button>
 </div>
@@ -30,7 +34,7 @@
     <button id="btn-switch-room" class="btn-link">切换聊天室</button>
   </div>
 
-  <div style="display:flex; gap:8px; margin-bottom:10px;">
+  <div class="top-nav" style="display:flex; gap:8px; margin-bottom:10px;">
     <button onclick="window.location.href='index.html'" style="flex:1;">返回写信</button>
     <button onclick="window.location.href='recycle.html'" style="flex:1;">回收站</button>
   </div>
@@ -42,6 +46,12 @@
 
   <div id="letters-list"></div>
 </div>
+
+<nav class="bottom-nav" id="bottom-nav">
+  <a href="index.html" class="bottom-nav-item" data-page="index"><span class="nav-icon">✍️</span>写信</a>
+  <a href="letters.html" class="bottom-nav-item" data-page="letters"><span class="nav-icon">✉️</span>信件</a>
+  <a href="recycle.html" class="bottom-nav-item" data-page="recycle"><span class="nav-icon">🗑️</span>回收站</a>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>

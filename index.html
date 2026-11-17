@@ -2,8 +2,11 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f0eadd">
 <title>写一封信</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lxgw-wenkai-webfont@1.7.0/style.css" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="shared.css">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -12,6 +15,7 @@
 
 <div id="auth-section">
   <h2>登录 / 注册</h2>
+  <p class="subtitle">写给我们的信</p>
   <input type="email" id="email" placeholder="邮箱">
   <input type="password" id="password" placeholder="密码">
   <button id="btn-login">登录</button>
@@ -25,6 +29,7 @@
 
 <div id="room-section" style="display:none;">
   <h2>输入暗号进入聊天室</h2>
+  <p class="subtitle">同一串数字，就是我们两个人的房间</p>
   <input type="text" id="roomCode" inputmode="numeric" maxlength="20" placeholder="输入你们的数字暗号">
   <button id="btn-enter-room">进入聊天室</button>
 </div>
@@ -35,22 +40,20 @@
     <button id="btn-switch-room" class="btn-link">切换聊天室</button>
   </div>
 
-  <div style="display:flex; gap:8px; margin-bottom:10px;">
+  <div class="top-nav" style="display:flex; gap:8px; margin-bottom:10px;">
     <button onclick="window.location.href='letters.html'" style="flex:1;">查看所有信件</button>
     <button onclick="window.location.href='recycle.html'" style="flex:1;">进入回收站</button>
   </div>
 
   <h2>写一封信</h2>
 
-  <div class="paper-style">
-    <select id="paperSelect">
-  <option value="paper-white">纯白</option>
-  <option value="paper-blue">蓝色星星</option>
-  <option value="paper-green">绿色星星</option>
-  <option value="paper-red">红色星星</option>
-  <option value="paper-whiteimg">白色纹理</option>
-  <option value="paper-yellow">黄色信纸</option>
-    </select>
+  <div class="paper-picker" id="paperPicker">
+    <button type="button" class="paper-swatch paper-white active" data-paper="paper-white"><span>纯白</span></button>
+    <button type="button" class="paper-swatch paper-blue" data-paper="paper-blue"><span>蓝色星星</span></button>
+    <button type="button" class="paper-swatch paper-green" data-paper="paper-green"><span>绿色星星</span></button>
+    <button type="button" class="paper-swatch paper-red" data-paper="paper-red"><span>红色星星</span></button>
+    <button type="button" class="paper-swatch paper-whiteimg" data-paper="paper-whiteimg"><span>白色纹理</span></button>
+    <button type="button" class="paper-swatch paper-yellow" data-paper="paper-yellow"><span>黄色信纸</span></button>
   </div>
 
   <div class="upload-area">
@@ -62,6 +65,12 @@
   <textarea id="content" placeholder="今天想说点什么~"></textarea>
   <button id="btn-send">发送信件</button>
 </div>
+
+<nav class="bottom-nav" id="bottom-nav">
+  <a href="index.html" class="bottom-nav-item" data-page="index"><span class="nav-icon">✍️</span>写信</a>
+  <a href="letters.html" class="bottom-nav-item" data-page="letters"><span class="nav-icon">✉️</span>信件</a>
+  <a href="recycle.html" class="bottom-nav-item" data-page="recycle"><span class="nav-icon">🗑️</span>回收站</a>
+</nav>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app.js"></script>

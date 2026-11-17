@@ -25,3 +25,15 @@ textarea {
   color: var(--text-preview);
   padding: 6px 0;
 }
+
+#btn-send:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  textarea {
+    height: 46vh;
+    min-height: 240px;
+  }
+}

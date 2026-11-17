@@ -7,6 +7,15 @@
 
 .filter-btn-group button {
   flex: 1;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+}
+
+.filter-btn-group button.active {
+  background: var(--btn-primary);
+  color: var(--text-onbtn);
+  border-color: var(--btn-primary);
 }
 
 #letters-list {
@@ -20,6 +29,8 @@
   display: flex;
   gap: 6px;
   justify-content: flex-end;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .card-btn-row button {
