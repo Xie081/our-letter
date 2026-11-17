@@ -9,7 +9,6 @@ const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 let selectedImages = [];
 let filterType = "other";
 let allLetterData = [];
-let selectedMood = "";
 const PAGE_SIZE = 5;
 let lettersPage = 1;
 let lettersTotal = 0;
@@ -50,22 +49,6 @@ if (contentTxt) {
   contentTxt.addEventListener("input", () => {
     localStorage.setItem(draftKey(), contentTxt.value);
   });
-}
-
-// ======================
-// 心情输入
-// ======================
-const moodInput = document.getElementById("moodInput");
-const moodShow = document.getElementById("moodShow");
-
-function updateMood() {
-  const val = moodInput.value.trim();
-  selectedMood = val;
-  moodShow.innerText = val ? "“" + val + "”" : "";
-}
-
-if (moodInput) {
-  moodInput.addEventListener("input", updateMood);
 }
 
 // ======================
@@ -181,7 +164,13 @@ function applyRoom() {
   loadDraft();
 
   const roomLabel = document.getElementById("room-label");
-  if (roomLabel) roomLabel.textContent = "聊天室 " + currentRoom;
+  if (roomLabel) {
+    roomLabel.textContent = "";
+    const codeEl = document.createElement("span");
+    codeEl.className = "room-code";
+    codeEl.textContent = currentRoom;
+    roomLabel.append("聊天室 ", codeEl);
+  }
 
   const page = getCurrentPage();
   if (page === "letters") { lettersPage = 1; loadLettersFilter("other"); }
@@ -206,10 +195,7 @@ function switchRoom() {
   localStorage.removeItem(ROOM_KEY);
 
   // 清掉写信念头的临时状态，避免带进另一个房间
-  selectedMood = "";
   selectedImages = [];
-  if (moodInput) moodInput.value = "";
-  if (moodShow) moodShow.innerText = "";
   if (imagePreview) imagePreview.innerText = "";
 
   applyRoom();
@@ -312,10 +298,6 @@ async function sendLetter() {
     imageInput.value = "";
   }
 
-  finalContent = selectedMood
-    ? "“" + selectedMood + "”\n" + finalContent
-    : finalContent;
-
   const paper = document.getElementById("paperSelect")?.value || "paper-white";
 
   const { data: { user } } = await client.auth.getUser();
@@ -333,9 +315,6 @@ async function sendLetter() {
   if (error) return alert("发送失败：" + error.message);
 
   localStorage.removeItem(draftKey());
-  selectedMood = "";
-  moodInput.value = "";
-  moodShow.innerText = "";
   document.getElementById("content").value = "";
   alert("发送成功！");
 }
@@ -450,20 +429,12 @@ function openFullLetter(letter) {
   contentDiv.className = "modal-content " + (letter.paper_style || "paper-white");
 
   let htmlContent = letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">');
-  const firstNewline = htmlContent.indexOf('\n');
-  // 心情行不缩进，正文每段独立成块、各自首行缩进 2em
-  if (firstNewline > 0) {
-    const moodLine = htmlContent.substring(0, firstNewline);
-    const bodyText = htmlContent.substring(firstNewline + 1);
-    const bodyBlocks = bodyText.split('\n').map(line =>
-      line === ''
-        ? '<br>'
-        : '<div style="text-indent:2em;white-space:pre-wrap;">' + line + '</div>'
-    ).join('\n');
-    htmlContent = '<div style="text-indent:0;">' + moodLine + '</div>\n' + bodyBlocks;
-  } else {
-    htmlContent = '<div style="text-indent:2em;white-space:pre-wrap;">' + htmlContent + '</div>';
-  }
+  // 正文每段独立成块、各自首行缩进 2em
+  htmlContent = htmlContent.split('\n').map(line =>
+    line === ''
+      ? '<br>'
+      : '<div style="text-indent:2em;white-space:pre-wrap;">' + line + '</div>'
+  ).join('\n');
   contentDiv.innerHTML = htmlContent;
 
   modal.appendChild(closeBtn);

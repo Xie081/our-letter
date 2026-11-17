@@ -16,13 +16,6 @@ textarea {
   transition: color 0.3s, border-color 0.3s;
 }
 
-#moodShow {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin: 8px 0;
-  font-family: "KaiTi", serif;
-}
-
 .upload-area button {
   background: var(--btn-upload);
 }
