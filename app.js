@@ -367,7 +367,7 @@ async function loadLetters() {
 
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
-      <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
+      <div class="letter-time">${formatLetterDateTime(letter)}</div>
       <div class="card-btn-row">
         <button class="save-img-btn-sm" data-id="${letter.id}">存长图</button>
         <button class="save-pdf-btn-sm" data-id="${letter.id}">存PDF</button>
@@ -458,14 +458,29 @@ function getFullLetterById(id) {
   return allLetterData.find(item => item.id === id);
 }
 
+// 把信件的发送时间转成本机时区的 Date（缺失或非法时退回当前时间）
+function getLetterDate(letter) {
+  const date = letter && letter.created_at ? new Date(letter.created_at) : new Date();
+  return isNaN(date.getTime()) ? new Date() : date;
+}
+
 // 用信件发送时间生成文件名时间戳（YYYYMMDD_HHmm，按本机时区显示）
 function formatLetterTimestamp(letter) {
-  let date = letter && letter.created_at ? new Date(letter.created_at) : new Date();
-  if (isNaN(date.getTime())) date = new Date();
+  const date = getLetterDate(letter);
   return date.getFullYear()
     + String(date.getMonth() + 1).padStart(2, '0')
     + String(date.getDate()).padStart(2, '0') + "_"
     + String(date.getHours()).padStart(2, '0')
+    + String(date.getMinutes()).padStart(2, '0');
+}
+
+// 信箱/回收站里显示的具体发送时间（YYYY/MM/DD HH:mm）
+function formatLetterDateTime(letter) {
+  const date = getLetterDate(letter);
+  return date.getFullYear() + "/"
+    + String(date.getMonth() + 1).padStart(2, '0') + "/"
+    + String(date.getDate()).padStart(2, '0') + " "
+    + String(date.getHours()).padStart(2, '0') + ":"
     + String(date.getMinutes()).padStart(2, '0');
 }
 
@@ -657,7 +672,7 @@ async function loadRecycle() {
     card.className = "letter-card " + paper;
     card.innerHTML = `
       <div class="letter-preview">${preview}</div>
-      <div class="letter-time">${new Date(letter.created_at).toLocaleDateString()}</div>
+      <div class="letter-time">${formatLetterDateTime(letter)}</div>
       <div class="card-btn-group">
         <button class="btn-restore" data-id="${letter.id}">恢复</button>
         <button class="btn-delete-full" data-id="${letter.id}">彻底删除</button>
