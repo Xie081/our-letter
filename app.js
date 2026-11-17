@@ -458,6 +458,17 @@ function getFullLetterById(id) {
   return allLetterData.find(item => item.id === id);
 }
 
+// 用信件发送时间生成文件名时间戳（YYYYMMDD_HHmm，按本机时区显示）
+function formatLetterTimestamp(letter) {
+  let date = letter && letter.created_at ? new Date(letter.created_at) : new Date();
+  if (isNaN(date.getTime())) date = new Date();
+  return date.getFullYear()
+    + String(date.getMonth() + 1).padStart(2, '0')
+    + String(date.getDate()).padStart(2, '0') + "_"
+    + String(date.getHours()).padStart(2, '0')
+    + String(date.getMinutes()).padStart(2, '0');
+}
+
 // ======================
 // 保存完整长图
 // ======================
@@ -513,12 +524,7 @@ async function saveFullLetterAsImg(id) {
             allowTaint: false
         });
 
-        const now = new Date();
-        const timestamp = now.getFullYear()
-          + String(now.getMonth() + 1).padStart(2, '0')
-          + String(now.getDate()).padStart(2, '0') + "_"
-          + String(now.getHours()).padStart(2, '0')
-          + String(now.getMinutes()).padStart(2, '0');
+        const timestamp = formatLetterTimestamp(letter);
 
         const link = document.createElement("a");
         link.download = "信件_" + timestamp + ".png";
@@ -594,12 +600,7 @@ async function saveFullLetterAsPdf(id) {
 
         pdf.addImage(imgData, "JPEG", 0, 0, canvas.width, canvas.height);
 
-        const now = new Date();
-        const timestamp = now.getFullYear()
-          + String(now.getMonth() + 1).padStart(2, '0')
-          + String(now.getDate()).padStart(2, '0') + "_"
-          + String(now.getHours()).padStart(2, '0')
-          + String(now.getMinutes()).padStart(2, '0');
+        const timestamp = formatLetterTimestamp(letter);
 
         pdf.save("信件_" + timestamp + ".pdf");
         alert("PDF保存成功！");
