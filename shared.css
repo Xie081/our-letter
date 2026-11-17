@@ -614,9 +614,33 @@ body.dark-mode .badge-in {
   cursor: zoom-in;
 }
 
-/* ========== 弹窗底部操作 ========== */
-.modal-shell {
+/* ========== 弹窗内图片缩略图 ========== */
+.modal-thumbs {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  white-space: normal;
+}
+
+.modal-thumb {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px var(--card-shadow);
+  cursor: zoom-in;
+  display: block;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.modal-thumb:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px var(--card-shadow);
+}
+
+/* ========== 弹窗底部操作 ========== */
+.modal-shell {  display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;

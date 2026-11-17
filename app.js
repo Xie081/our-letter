@@ -6,6 +6,16 @@ const SUPABASE_ANON_KEY = "sb_publishable_IRdpgnmzz2W6AeEj9R-1ug_ZvAlJQLE";
 
 const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// 从重置密码邮件跳回时 URL 里带 type=recovery。
+// 必须在 SDK 异步清理 URL 之前同步取到，所以放在脚本顶层。
+let isRecovering = /(?:^|[#&?])type=recovery(?:&|$)/.test(location.hash)
+  || /(?:^|[#&?])type=recovery(?:&|$)/.test(location.search);
+
+// SDK 解析出恢复会话时会触发 PASSWORD_RECOVERY（隐式流程）
+client.auth.onAuthStateChange((event) => {
+  if (event === "PASSWORD_RECOVERY") showResetPasswordUI();
+});
+
 let selectedImages = [];
 let imageObjectUrls = [];
 let selectedPaper = "paper-white";
@@ -316,6 +326,13 @@ function applyRoom() {
   const roomSection = document.getElementById("room-section");
   const letterSection = document.getElementById("letter-section");
   const bottomNav = document.getElementById("bottom-nav");
+
+  // 重置密码优先：不要让登录态把重置表单冲掉
+  if (isRecovering) {
+    showResetPasswordUI();
+    return;
+  }
+
   if (authSection) authSection.style.display = "none";
   if (bottomNav) bottomNav.classList.toggle("is-visible", !!currentRoom);
   if (!roomSection || !letterSection) return;
@@ -367,15 +384,47 @@ async function switchRoom() {
   applyRoom();
 }
 
+// 显示重置密码界面：隐藏登录/注册相关元素，只留新密码输入
+function showResetPasswordUI() {
+  isRecovering = true;
+
+  const authSection = document.getElementById("auth-section");
+  const roomSection = document.getElementById("room-section");
+  const letterSection = document.getElementById("letter-section");
+  const resetSection = document.getElementById("reset-pwd-section");
+
+  // 只有 index.html 有重置表单；落在别的页面就跳回首页并保留恢复标记
+  if (!resetSection) {
+    const marker = /type=recovery/.test(location.hash) ? location.hash : "#type=recovery";
+    location.replace("index.html" + marker);
+    return;
+  }
+
+  if (authSection) authSection.style.display = "block";
+  if (roomSection) roomSection.style.display = "none";
+  if (letterSection) letterSection.style.display = "none";
+
+  document.querySelectorAll("#email, #password, #btn-login, #btn-register, #btn-forgot")
+    .forEach(el => { el.style.display = "none"; });
+
+  const title = document.querySelector("#auth-section h2");
+  if (title) title.textContent = "重置密码";
+  const sub = document.querySelector("#auth-section .subtitle");
+  if (sub) sub.textContent = "请设置一个新密码";
+
+  resetSection.style.display = "block";
+}
+
 // 检测是否从重置密码邮件链接跳转回来
 async function checkRecoveryFlow() {
-  const hash = window.location.hash;
-  if (!hash.includes("type=recovery")) return;
+  if (!isRecovering) return;
 
   // Supabase SDK 会自动从 hash 中解析 token 并设置 session
   const { data: { user } } = await client.auth.getUser();
   if (user) {
-    document.getElementById("reset-pwd-section").style.display = "block";
+    showResetPasswordUI();
+  } else {
+    showToast("重置密码链接无效或已过期，请重新发送", "error");
   }
 }
 
@@ -421,7 +470,10 @@ async function resetPassword() {
   const { error } = await client.auth.updateUser({ password: newPassword });
   if (error) showToast(error.message, "error");
   else {
-    showToast("密码重置成功！请用新密码登录", "success");
+    showToast("密码重置成功！", "success");
+    isRecovering = false;
+    // 清掉 URL 里的 recovery token，避免刷新后仍停在重置界面
+    history.replaceState(null, "", location.pathname);
     setTimeout(() => location.reload(), 800);
   }
 }
@@ -675,14 +727,42 @@ function openFullLetter(letter) {
   const contentDiv = document.createElement("div");
   contentDiv.className = "modal-content " + (letter.paper_style || "paper-white");
 
-  let htmlContent = letter.content.replace(/!\[img]\((.*?)\)/g, '<img src="$1" style="max-width:100%;border-radius:10px;">');
+  // 把图片从正文中抽出来，正文只保留文字
+  const imageUrls = [];
+  let textContent = letter.content.replace(/!\[img]\((.*?)\)/g, (_, url) => {
+    imageUrls.push(url);
+    return "";
+  });
+  textContent = textContent.replace(/[ \t]+\n/g, "\n").replace(/\n{3,}/g, "\n\n").trim();
+
   // 正文每段独立成块、各自首行缩进 2em
-  htmlContent = htmlContent.split('\n').map(line =>
-    line === ''
-      ? '<br>'
-      : '<div style="text-indent:2em;white-space:pre-wrap;">' + line + '</div>'
-  ).join('\n');
+  let htmlContent = textContent
+    ? textContent.split('\n').map(line =>
+        line === ''
+          ? '<br>'
+          : '<div style="text-indent:2em;white-space:pre-wrap;">' + line + '</div>'
+      ).join('\n')
+    : '';
   contentDiv.innerHTML = htmlContent;
+
+  // 图片改为贴边并排的缩略图，点击查看大图
+  if (imageUrls.length) {
+    const thumbs = document.createElement("div");
+    thumbs.className = "modal-thumbs";
+    imageUrls.forEach(src => {
+      const img = document.createElement("img");
+      img.className = "modal-thumb";
+      img.src = src;
+      img.alt = "";
+      img.loading = "lazy";
+      img.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openImageViewer(src);
+      });
+      thumbs.appendChild(img);
+    });
+    contentDiv.appendChild(thumbs);
+  }
 
   // 底部：发送时间 + 操作按钮
   const footer = document.createElement("div");
@@ -730,15 +810,6 @@ function openFullLetter(letter) {
     if (e.target === modal) close();
   });
   document.body.appendChild(modal);
-
-  // 图片点击放大
-  modal.querySelectorAll(".modal-content img").forEach(img => {
-    img.style.cursor = "zoom-in";
-    img.addEventListener("click", (e) => {
-      e.stopPropagation();
-      openImageViewer(img.src);
-    });
-  });
 }
 
 function getFullLetterById(id) {
