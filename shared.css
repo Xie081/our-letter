@@ -262,6 +262,27 @@ body.dark-mode .paper-yellow {
   text-align: center;
 }
 
+/* 当前聊天室栏 */
+.room-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.room-bar .btn-link {
+  width: auto !important;
+  flex: 0 0 auto;
+  margin: 0 !important;
+  padding: 4px 6px !important;
+}
+
 /* 链接风格按钮 */
 .btn-link {
   width: auto !important;

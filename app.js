@@ -16,6 +16,10 @@ let lettersTotal = 0;
 let recyclePage = 1;
 let recycleTotal = 0;
 
+// 当前聊天室（房间暗号），保存在本机
+const ROOM_KEY = "letterRoom";
+let currentRoom = (localStorage.getItem(ROOM_KEY) || "").trim();
+
 // ======================
 // 工具函数
 // ======================
@@ -29,13 +33,22 @@ function getCurrentPage() {
 // ======================
 // 草稿自动保存 + 自动长高
 // ======================
+// 草稿按房间分开存，换房间不会串内容
+function draftKey() {
+  return "letterDraft:" + (currentRoom || "none");
+}
+
+function loadDraft() {
+  if (!contentTxt) return;
+  contentTxt.value = localStorage.getItem(draftKey()) || "";
+}
+
 const contentTxt = document.getElementById("content");
 if (contentTxt) {
-  let draft = localStorage.getItem("letterDraft");
-  if (draft) contentTxt.value = draft;
+  loadDraft();
 
   contentTxt.addEventListener("input", () => {
-    localStorage.setItem("letterDraft", contentTxt.value);
+    localStorage.setItem(draftKey(), contentTxt.value);
   });
 }
 
@@ -142,19 +155,64 @@ window.addEventListener("load", () => {
 
 async function checkAuth() {
   const { data: { user } } = await client.auth.getUser();
-  if (user) {
-    showLetterSection();
-    const page = getCurrentPage();
-    if (page === "letters") { lettersPage = 1; loadLettersFilter("other"); }
-    if (page === "recycle") { recyclePage = 1; loadRecycle(); }
-  }
+  if (!user) return;
+  applyRoom();
 }
 
-function showLetterSection() {
+// ======================
+// 聊天室（暗号）
+// ======================
+// 根据是否已选房间，决定显示暗号输入区还是写信/信件区
+function applyRoom() {
   const authSection = document.getElementById("auth-section");
+  const roomSection = document.getElementById("room-section");
   const letterSection = document.getElementById("letter-section");
   if (authSection) authSection.style.display = "none";
-  if (letterSection) letterSection.style.display = "block";
+  if (!roomSection || !letterSection) return;
+
+  if (!currentRoom) {
+    roomSection.style.display = "block";
+    letterSection.style.display = "none";
+    return;
+  }
+
+  roomSection.style.display = "none";
+  letterSection.style.display = "block";
+  loadDraft();
+
+  const roomLabel = document.getElementById("room-label");
+  if (roomLabel) roomLabel.textContent = "聊天室 " + currentRoom;
+
+  const page = getCurrentPage();
+  if (page === "letters") { lettersPage = 1; loadLettersFilter("other"); }
+  if (page === "recycle") { recyclePage = 1; loadRecycle(); }
+}
+
+function enterRoom() {
+  const input = document.getElementById("roomCode");
+  const code = (input ? input.value : "").trim();
+  if (!/^\d{4,20}$/.test(code)) return alert("请输入 4~20 位数字暗号");
+
+  currentRoom = code;
+  localStorage.setItem(ROOM_KEY, code);
+  if (input) input.value = "";
+  applyRoom();
+}
+
+function switchRoom() {
+  if (!confirm("切换聊天室？本房间的草稿会保留，下次输入同一暗号还能继续写。")) return;
+
+  currentRoom = "";
+  localStorage.removeItem(ROOM_KEY);
+
+  // 清掉写信念头的临时状态，避免带进另一个房间
+  selectedMood = "";
+  selectedImages = [];
+  if (moodInput) moodInput.value = "";
+  if (moodShow) moodShow.innerText = "";
+  if (imagePreview) imagePreview.innerText = "";
+
+  applyRoom();
 }
 
 // 检测是否从重置密码邮件链接跳转回来
@@ -223,6 +281,11 @@ document.getElementById("btn-login")?.addEventListener("click", login);
 document.getElementById("btn-register")?.addEventListener("click", register);
 document.getElementById("btn-forgot")?.addEventListener("click", forgotPassword);
 document.getElementById("btn-reset-pwd")?.addEventListener("click", resetPassword);
+document.getElementById("btn-enter-room")?.addEventListener("click", enterRoom);
+document.getElementById("btn-switch-room")?.addEventListener("click", switchRoom);
+document.getElementById("roomCode")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") enterRoom();
+});
 document.getElementById("btn-send")?.addEventListener("click", sendLetter);
 document.getElementById("btn-filter-me")?.addEventListener("click", () => loadLettersFilter("me"));
 document.getElementById("btn-filter-other")?.addEventListener("click", () => loadLettersFilter("other"));
@@ -257,17 +320,19 @@ async function sendLetter() {
 
   const { data: { user } } = await client.auth.getUser();
   if (!user) return alert("请先登录");
+  if (!currentRoom) return alert("请先输入聊天室暗号");
 
   const { error } = await client.from("letters").insert([{
     sender: user.email,
     content: finalContent,
     paper_style: paper,
+    room_code: currentRoom,
     is_deleted: false
   }]);
 
   if (error) return alert("发送失败：" + error.message);
 
-  localStorage.removeItem("letterDraft");
+  localStorage.removeItem(draftKey());
   selectedMood = "";
   moodInput.value = "";
   moodShow.innerText = "";
@@ -289,6 +354,7 @@ async function loadLetters() {
   let query = client.from("letters")
     .select("*", { count: "exact" })
     .eq("is_deleted", false)
+    .eq("room_code", currentRoom)
     .order("created_at", { ascending: false });
 
   if (filterType === "me") {
@@ -581,7 +647,7 @@ async function saveFullLetterAsPdf(id) {
 // ======================
 async function del(id) {
   if (!confirm("确定删除？可在回收站找回")) return;
-  await client.from("letters").update({ is_deleted: true }).eq("id", id);
+  await client.from("letters").update({ is_deleted: true }).eq("id", id).eq("room_code", currentRoom);
   loadLetters();
 }
 
@@ -595,6 +661,7 @@ async function loadRecycle() {
   const { data, count } = await client.from("letters")
     .select("*", { count: "exact" })
     .eq("is_deleted", true)
+    .eq("room_code", currentRoom)
     .order("created_at", { ascending: false })
     .range(start, end);
 
@@ -659,13 +726,13 @@ function renderRecyclePagination() {
 }
 
 async function recoverLetter(id) {
-  await client.from("letters").update({ is_deleted: false }).eq("id", id);
+  await client.from("letters").update({ is_deleted: false }).eq("id", id).eq("room_code", currentRoom);
   alert("已恢复！");
   loadRecycle();
 }
 
 async function hardDelete(id) {
   if (!confirm("确定永久删除？不可恢复！")) return;
-  await client.from("letters").delete().eq("id", id);
+  await client.from("letters").delete().eq("id", id).eq("room_code", currentRoom);
   loadRecycle();
 }
